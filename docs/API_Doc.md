@@ -32,7 +32,7 @@
 - **Request Body**
 ```json
 {
-  "userId": integer
+  "userId": "integer"
 }
 ```
 **Response**
@@ -41,10 +41,10 @@
 {
   "status": 200,
   "data": {
-    "token": string,
-    "order": integer,
-    "queueStatus": string,
-    "expiredAt": string (datetime)
+    "token": "string",
+    "order": "integer",
+    "queueStatus": "string",
+    "expiredAt": "string (datetime)"
   }
 }
 ```
@@ -71,10 +71,10 @@
 {
   "status": 200,
   "data": {
-    "order": integer,
-    "remainingWaitingCount": integer,
-    "queueStatus": string,
-    "expiredAt": string (datetime)
+    "order": "integer",
+    "remainingWaitingCount": "integer",
+    "queueStatus": "string",
+    "expiredAt": "string (datetime)"
   }
 }
 ```
@@ -109,10 +109,10 @@
   "status": 200,
   "data": [
     {
-      "concertId": integer,
-      "concertTitle": string,
-      "concertDescription": string,
-      "createdAt": string (datetime)
+      "concertId": "integer",
+      "concertTitle": "string",
+      "concertDescription": "string",
+      "createdAt": "string (datetime)"
     }
   ]
 }
@@ -135,10 +135,10 @@
   "status": 200,
   "data": [
     {
-      "concertScheduleId": integer,
-      "concertScheduledDate": string (date),
-      "concertStartAt": string (datetime),
-      "concertEndAt": string (datetime)
+      "concertScheduleId": "integer",
+      "concertScheduledDate": "string (date)",
+      "concertStartAt": "string (datetime)",
+      "concertEndAt": "string (datetime)"
     }
   ]
 }
@@ -182,9 +182,9 @@
   "status": 200,
   "data": [
     {
-      "concertSeatId": integer,
-      "seatNumber": integer,
-      "priceAmount": integer
+      "concertSeatId": "integer",
+      "seatNumber": "integer",
+      "priceAmount": "integer"
     }
   ]
 }
@@ -230,8 +230,8 @@
 - **Request Body**
 ```json
 {
-  "userId": integer,
-  "seatId": integer
+  "userId": "integer",
+  "seatId": "integer"
 }
 ```
 
@@ -241,8 +241,8 @@
 {
   "status": 200,
   "data": {
-    "reservationId": integer,
-    "priceAmount": integer
+    "reservationId": "integer",
+    "priceAmount": "integer"
   }
 }
 ```
@@ -306,7 +306,7 @@
 {
   "status": 200,
   "data": {
-    "balanceAmount": integer
+    "balanceAmount": "integer"
   }
 }
 ```
@@ -344,7 +344,7 @@
 - **Request Body**
 ```json
 {
-  "amount": integer
+  "amount": "integer"
 }
 ```
 
@@ -354,7 +354,7 @@
 {
   "status": 200,
   "data": {
-    "amount": integer
+    "amount": "integer"
   }
 }
 ```
@@ -392,7 +392,7 @@
 - **Request Body**
 ```json
 {
-  "reservationId": integer
+  "reservationId": "integer"
 }
 ```
 
@@ -402,11 +402,11 @@
 {
   "status": 200,
   "data": {
-    "concertId": integer,
-    "concertTitle": string,
-    "seatNumber": integer,
-    "paymentId": integer,
-    "paidAmount": integer
+    "concertId": "integer",
+    "concertTitle": "string",
+    "seatNumber": "integer",
+    "paymentId": "integer",
+    "paidAmount": "integer"
   }
 }
 ```
