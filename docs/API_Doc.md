@@ -1,9 +1,17 @@
 # API 명세서
 
 ## 목차
-1. [인증 정보]()
-2. [API 목록]()
-<br/>
+1. [인증 정보](#1-인증-정보)
+2. [API 목록](#2-api-목록)
+    - [유저 대기열 토큰 발급 API](#유저-대기열-토큰-발급-api)
+    - [유저 대기열 상태 조회 API](#유저-대기열-상태-조회-api)
+    - [콘서트 목록 조회 API](#콘서트-목록-api)
+    - [예약 가능 날짜 조회 API](#예약-가능-날짜-조회-api)
+    - [예약 가능 좌석 조회 API](#예약-가능-좌석-조회-api)
+    - [좌석 예약 요청 API](#좌석-예약-요청-api)
+    - [유저 잔액 조회 API](#유저-잔액-조회-api)
+    - [유저 잔액 충전 API](#유저-잔액-충전-api)
+    - [결제 처리 API](#결제-처리-api)
 
 ## 1. 인증 정보
 `대기열 토큰 발급 API` 와 `콘서트 목록 조회 API`를 제외한, <br/>
@@ -11,7 +19,7 @@
 
 - 헤더 이름: X-QUEUE-TOKEN
 - 위치: 헤더
-<br/>
+  <br/>
 
 ## 2. API 목록
 ## 대기열
@@ -290,7 +298,7 @@
 - **URL**: `/api/v1/users/{userId}/balances`
 - **Http Method**: `GET`
 - **Http Header**: [X-QUEUE-TOKEN:  토큰 값]
-- **Path Variable**: `userId` (integer) 
+- **Path Variable**: `userId` (integer)
 
 **Response**
 - 성공 (http status code: 200)
