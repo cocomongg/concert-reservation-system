@@ -1,16 +1,17 @@
-package io.hhplus.concert.interfaces.api.queue;
+package io.hhplus.concert.interfaces.api.member;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-public class QueueRequest {
+public class MemberRequest {
+
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CreateQueue {
-        @Schema(description = "user id")
-        private Long userId;
+    public static class ChargeUserBalance {
+        @Schema(description = "충전할 금액")
+        private int amount;
     }
 }

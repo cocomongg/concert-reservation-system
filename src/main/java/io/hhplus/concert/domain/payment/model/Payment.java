@@ -21,8 +21,8 @@ public class Payment {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "user_id")
-    private Long userId;
+    @Column(name = "member_id")
+    private Long memberId;
 
     @Column(name = "reservation_id")
     private Long reservationId;

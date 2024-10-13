@@ -12,7 +12,7 @@ public class ConcertRequest {
     @AllArgsConstructor
     public static class ReserveConcert {
         @Schema(description = "예약자 id")
-        private Long userId;
+        private Long memberId;
 
         @Schema(description = "예약하려는 좌석 id")
         private Long seatId;

@@ -1,4 +1,4 @@
-package io.hhplus.concert.interfaces.api.queue;
+package io.hhplus.concert.interfaces.api.waitingqueue;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-public class QueueResponse {
+public class WaitingQueueResponse {
 
     @Getter
     @Builder

@@ -1,7 +1,9 @@
-package io.hhplus.concert.domain.user.model;
+package io.hhplus.concert.domain.waitingqueue.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,18 +14,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class User {
+public class WaitingQueue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "email")
-    private String email;
+    @Column(name = "token")
+    private String token;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "member_id")
+    private Long memberId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    WaitingQueueStatus status;
+
+    @Column(name = "expired_at")
+    private LocalDateTime expiredAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

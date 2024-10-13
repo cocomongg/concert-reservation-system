@@ -1,10 +1,10 @@
-package io.hhplus.concert.interfaces.api.user;
+package io.hhplus.concert.interfaces.api.member;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public class UserResponse {
+public class MemberResponse {
 
     @Getter
     @AllArgsConstructor
