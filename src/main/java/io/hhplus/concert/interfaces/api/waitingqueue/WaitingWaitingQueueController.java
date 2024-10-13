@@ -1,10 +1,10 @@
-package io.hhplus.concert.interfaces.api.queue;
+package io.hhplus.concert.interfaces.api.waitingqueue;
 
-import io.hhplus.concert.domain.queue.model.WaitingQueueStatus;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.interfaces.api.common.response.ApiResponse;
-import io.hhplus.concert.interfaces.api.queue.QueueRequest.CreateQueue;
-import io.hhplus.concert.interfaces.api.queue.QueueResponse.CreateQueueToken;
-import io.hhplus.concert.interfaces.api.queue.QueueResponse.GetQueue;
+import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueRequest.CreateQueue;
+import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueResponse.CreateQueueToken;
+import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueResponse.GetQueue;
 import java.time.LocalDateTime;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/api/v1/queues")
 @RestController
-public class QueueController implements QueueControllerDocs{
+public class WaitingWaitingQueueController implements WaitingQueueControllerDocs {
 
     @GetMapping
     public ApiResponse<GetQueue> GetQueue(@RequestHeader("X-QUEUE-TOKEN") String token) {

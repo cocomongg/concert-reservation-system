@@ -21,8 +21,8 @@ public class ConcertReservation {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "user_id")
-    private Long userId;
+    @Column(name = "member_id")
+    private Long memberId;
 
     @Column(name = "concert_seat_id")
     private Long concertSeatId;

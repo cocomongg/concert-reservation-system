@@ -1,4 +1,4 @@
-package io.hhplus.concert.domain.queue.model;
+package io.hhplus.concert.domain.waitingqueue.model;
 
 public enum WaitingQueueStatus {
     WAITED,
