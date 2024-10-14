@@ -8,15 +8,15 @@ public class MemberResponse {
 
     @Getter
     @AllArgsConstructor
-    public static class GetUserBalance {
+    public static class GetMemberPoint {
         @Schema(description = "잔액")
-        private final int balanceAmount;
+        private final int pointAmount;
     }
 
     @Getter
     @AllArgsConstructor
-    public static class ChargeUserBalance {
+    public static class ChargeMemberPoint {
         @Schema(description = "충전 후 잔액")
-        private final int balanceAmount;
+        private final int pointAmount;
     }
 }

@@ -10,7 +10,7 @@ public class MemberRequest {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ChargeUserBalance {
+    public static class ChargeMemberPoint {
         @Schema(description = "충전할 금액")
         private int amount;
     }
