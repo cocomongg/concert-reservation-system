@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class MemberBalance {
+public class MemberPoint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,8 +22,8 @@ public class MemberBalance {
     @Column(name = "member_id")
     private Long memberId;
 
-    @Column(name = "balance_amount")
-    private int balanceAmount;
+    @Column(name = "point_amount")
+    private int pointAmount;
 
     @Column(name = "created_at")
     private LocalDateTime createdAT;

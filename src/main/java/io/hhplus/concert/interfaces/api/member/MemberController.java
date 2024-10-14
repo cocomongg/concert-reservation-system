@@ -1,8 +1,8 @@
 package io.hhplus.concert.interfaces.api.member;
 
 import io.hhplus.concert.interfaces.api.common.response.ApiResponse;
-import io.hhplus.concert.interfaces.api.member.MemberResponse.ChargeUserBalance;
-import io.hhplus.concert.interfaces.api.member.MemberResponse.GetUserBalance;
+import io.hhplus.concert.interfaces.api.member.MemberResponse.ChargeMemberPoint;
+import io.hhplus.concert.interfaces.api.member.MemberResponse.GetMemberPoint;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,16 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MemberController implements MemberControllerDocs {
 
-    @GetMapping("/{memberId}/balances")
-    public ApiResponse<GetUserBalance> getMemberBalance(@PathVariable Long memberId,
+    @GetMapping("/{memberId}/points")
+    public ApiResponse<GetMemberPoint> getMemberPoint(@PathVariable Long memberId,
         @RequestHeader("X-QUEUE-TOKEN") String token) {
-        return ApiResponse.OK(new GetUserBalance(10_000));
+        return ApiResponse.OK(new GetMemberPoint(10_000));
     }
 
-    @PostMapping("/{memberId}/balances")
-    public ApiResponse<ChargeUserBalance> chargeMemberBalance(@PathVariable Long memberId,
-        @RequestBody MemberRequest.ChargeUserBalance request,
+    @PostMapping("/{memberId}/points")
+    public ApiResponse<ChargeMemberPoint> chargeMemberPoint(@PathVariable Long memberId,
+        @RequestBody MemberRequest.ChargeMemberPoint request,
         @RequestHeader("X-QUEUE-TOKEN") String token) {
-        return ApiResponse.OK(new ChargeUserBalance(10_000 + request.getAmount()));
+        return ApiResponse.OK(new ChargeMemberPoint(10_000 + request.getAmount()));
     }
 }
