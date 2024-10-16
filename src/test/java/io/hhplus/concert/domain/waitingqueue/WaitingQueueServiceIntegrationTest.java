@@ -37,7 +37,7 @@ class WaitingQueueServiceIntegrationTest {
         void should_ReturnWaitingQueue_When_CommandGiven() {
             // given
             CreateWaitingQueueCommand command = new CreateWaitingQueueCommand("token",
-                WaitingQueueStatus.WAITED, LocalDateTime.now());
+                WaitingQueueStatus.WAITING, LocalDateTime.now());
 
             // when
             WaitingQueue result = waitingQueueService.createWaitingQueue(command);
@@ -46,7 +46,7 @@ class WaitingQueueServiceIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getToken()).isEqualTo(command.getToken());
             assertThat(result.getStatus()).isEqualTo(command.getStatus());
-            assertThat(result.getExpiredAt()).isEqualTo(command.getExpiredAt());
+            assertThat(result.getExpireAt()).isEqualTo(command.getExpireAt());
         }
 
         @DisplayName("입력된 값들을 통해 waitingQueue객체를 저장한다.")
@@ -54,7 +54,7 @@ class WaitingQueueServiceIntegrationTest {
         void should_SaveWaitingQueue_When_CommandGiven() {
             // given
             CreateWaitingQueueCommand command = new CreateWaitingQueueCommand("token",
-                WaitingQueueStatus.WAITED, LocalDateTime.now());
+                WaitingQueueStatus.WAITING, LocalDateTime.now());
 
             // when
             WaitingQueue waitingQueue = waitingQueueService.createWaitingQueue(command);
@@ -67,7 +67,7 @@ class WaitingQueueServiceIntegrationTest {
             WaitingQueue savedWaitingQueue = savedWaitingQueueOptional.get();
             assertThat(savedWaitingQueue.getToken()).isEqualTo(command.getToken());
             assertThat(savedWaitingQueue.getStatus()).isEqualTo(command.getStatus());
-            assertThat(savedWaitingQueue.getExpiredAt()).isEqualTo(command.getExpiredAt());
+            assertThat(savedWaitingQueue.getExpireAt()).isEqualTo(command.getExpireAt());
         }
     }
 }

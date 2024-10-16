@@ -25,7 +25,7 @@ class WaitingQueueCommandTest {
 
             // when, then
             assertThatThrownBy(() -> new CreateWaitingQueueCommand(invalidTokenValue,
-                WaitingQueueStatus.WAITED, LocalDateTime.now()))
+                WaitingQueueStatus.WAITING, LocalDateTime.now()))
                 .isInstanceOf(WaitingQueueException.class)
                 .hasMessage(WaitingQueueErrorCode.INVALID_CREATION_INPUT.getMessage());
         }
@@ -43,7 +43,7 @@ class WaitingQueueCommandTest {
         @Test
         void should_ThrowWaitingQueueException_When_InvalidExpiredAtValue() {
             assertThatThrownBy(() -> new CreateWaitingQueueCommand("token",
-                WaitingQueueStatus.WAITED, null))
+                WaitingQueueStatus.WAITING, null))
                 .isInstanceOf(WaitingQueueException.class)
                 .hasMessage(WaitingQueueErrorCode.INVALID_CREATION_INPUT.getMessage());
         }
@@ -53,7 +53,7 @@ class WaitingQueueCommandTest {
         void should_GenerateCreateWaitingQueueCommand_When_ValidValue() {
             // given
             String token = "token";
-            WaitingQueueStatus status = WaitingQueueStatus.WAITED;
+            WaitingQueueStatus status = WaitingQueueStatus.WAITING;
             LocalDateTime expiredAt = LocalDateTime.now();
 
             // when
@@ -64,7 +64,7 @@ class WaitingQueueCommandTest {
             assertThat(command).isNotNull();
             assertThat(command.getToken()).isEqualTo(token);
             assertThat(command.getStatus()).isEqualTo(status);
-            assertThat(command.getExpiredAt()).isEqualTo(expiredAt);
+            assertThat(command.getExpireAt()).isEqualTo(expiredAt);
         }
     }
 }

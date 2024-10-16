@@ -13,17 +13,17 @@ public class WaitingQueueCommand {
     public static class CreateWaitingQueueCommand {
         private final String token;
         private final WaitingQueueStatus status;
-        private final LocalDateTime expiredAt;
+        private final LocalDateTime expireAt;
 
         public CreateWaitingQueueCommand(String token, WaitingQueueStatus status,
-            LocalDateTime expiredAt) {
-            if(!StringUtils.hasText(token) || Objects.isNull(status) || Objects.isNull(expiredAt)) {
+            LocalDateTime expireAt) {
+            if(!StringUtils.hasText(token) || Objects.isNull(status) || Objects.isNull(expireAt)) {
                 throw WaitingQueueException.INVALID_CREATION_INPUT;
             }
 
             this.token = token;
             this.status = status;
-            this.expiredAt = expiredAt;
+            this.expireAt = expireAt;
         }
     }
 }
