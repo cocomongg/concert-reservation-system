@@ -52,4 +52,14 @@ public class WaitingQueue {
     public boolean isWaiting() {
         return WaitingQueueStatus.WAITING.equals(this.status);
     }
+
+    public boolean isAvailable(LocalDateTime currentTime) {
+        boolean isActive = WaitingQueueStatus.ACTIVE.equals(this.status);
+        return isActive && this.expireAt.isAfter(currentTime);
+    }
+
+    public void expire() {
+        this.status = WaitingQueueStatus.EXPIRED;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
