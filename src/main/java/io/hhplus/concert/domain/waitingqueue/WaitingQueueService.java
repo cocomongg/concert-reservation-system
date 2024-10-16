@@ -5,7 +5,9 @@ import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQue
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,5 +37,26 @@ public class WaitingQueueService {
         Long order = waitingQueueRepository.countWaitingOrder(waitingQueue.getId());
 
         return new WaitingQueueWithOrder(waitingQueue, order);
+    }
+
+    @Transactional(readOnly = true)
+    public Long getActiveCount() {
+        return waitingQueueRepository.getActiveCount();
+    }
+
+    @Transactional
+    public void activateOldestWaitedQueues(int countToActivate) {
+        if(countToActivate <= 0) {
+            return;
+        }
+
+        List<Long> waitingQueueIds = waitingQueueRepository.getOldestWaitedQueueIds(
+            countToActivate);
+
+        if(waitingQueueIds.isEmpty()) {
+            return;
+        }
+
+        waitingQueueRepository.activateWaitingQueues(waitingQueueIds);
     }
 }
