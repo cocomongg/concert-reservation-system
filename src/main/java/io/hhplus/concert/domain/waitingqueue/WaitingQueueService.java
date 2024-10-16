@@ -1,7 +1,10 @@
 package io.hhplus.concert.domain.waitingqueue;
 
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueueCommand;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
+import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,5 +18,22 @@ public class WaitingQueueService {
     @Transactional
     public WaitingQueue createWaitingQueue(CreateWaitingQueueCommand command) {
         return waitingQueueRepository.createWaitingQueue(command);
+    }
+
+    @Transactional(readOnly = true)
+    public WaitingQueue getWaitingQueue(GetWaitingQueueCommonQuery query) {
+        return waitingQueueRepository.getWaitingQueue(query);
+    }
+
+    @Transactional(readOnly = true)
+    public WaitingQueueWithOrder getWaitingQueueWithOrder(GetWaitingQueueCommonQuery query) {
+        WaitingQueue waitingQueue = this.getWaitingQueue(query);
+
+        if(!waitingQueue.isWaiting()) {
+            throw WaitingQueueException.INVALID_STATE_NOT_WAITING;
+        }
+        Long order = waitingQueueRepository.countWaitingOrder(waitingQueue.getId());
+
+        return new WaitingQueueWithOrder(waitingQueue, order);
     }
 }

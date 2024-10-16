@@ -48,4 +48,8 @@ public class WaitingQueue {
         this.expireAt = command.getExpireAt();
         this.createdAt = LocalDateTime.now();
     }
+
+    public boolean isWaiting() {
+        return WaitingQueueStatus.WAITING.equals(this.status);
+    }
 }
