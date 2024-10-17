@@ -153,4 +153,84 @@ class WaitingQueueFacadeIntegrationTest {
             assertThat(order).isEqualTo(2L);
         }
     }
+
+    @DisplayName("validateWaitingQueueToken() 테스트")
+    @Nested
+    class ValidateWaitingQueueTokenTest {
+        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_WaitingQueueNotFound () {
+            // given
+            String token = "InvalidToken";
+            LocalDateTime now = LocalDateTime.now();
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueFacade.validateWaitingQueueToken(token, now))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+        }
+
+        @DisplayName("토큰에 해당하는 waitingQueue가 만료되었으면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_ActiveTokenIsExpired() {
+            // given
+            String token = "token";
+            LocalDateTime now = LocalDateTime.now();
+
+            WaitingQueue waitingQueue = WaitingQueue.builder()
+                .token(token)
+                .status(WaitingQueueStatus.ACTIVE)
+                .expireAt(now.minusDays(1))
+                .createdAt(now)
+                .build();
+
+            waitingQueueJpaRepository.save(waitingQueue);
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueFacade.validateWaitingQueueToken(token, now))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+        }
+
+        @DisplayName("토큰의 상태가 Active가 아니면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_StatusIsNotActive() {
+            // given
+            String token = "token";
+            LocalDateTime now = LocalDateTime.now();
+
+            WaitingQueue waitingQueue = WaitingQueue.builder()
+                .token(token)
+                .status(WaitingQueueStatus.WAITING)
+                .createdAt(now)
+                .build();
+
+            waitingQueueJpaRepository.save(waitingQueue);
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueFacade.validateWaitingQueueToken(token, now))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+        }
+
+        @DisplayName("토큰의 상태가 Active이고 만료되지 않았으면 WaitingQueueException이 발생하지 않는다.")
+        @Test
+        void should_NotThrowException_When_TokenIsValid () {
+            // given
+            String token = "token";
+            LocalDateTime now = LocalDateTime.now();
+
+            WaitingQueue waitingQueue = WaitingQueue.builder()
+                .token(token)
+                .status(WaitingQueueStatus.ACTIVE)
+                .expireAt(now.plusMinutes(1))
+                .createdAt(now)
+                .build();
+
+            waitingQueueJpaRepository.save(waitingQueue);
+
+            // when, then
+            waitingQueueFacade.validateWaitingQueueToken(token, now);
+        }
+    }
 }

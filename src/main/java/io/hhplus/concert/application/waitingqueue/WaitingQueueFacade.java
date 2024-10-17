@@ -7,6 +7,7 @@ import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueTokenGenerator;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
+import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
 import java.time.LocalDateTime;
@@ -43,5 +44,16 @@ public class WaitingQueueFacade {
             waitingQueueService.getWaitingQueueWithOrder(query);
 
         return new WaitingQueueWithOrderInfo(waitingQueueWithOrder);
+    }
+
+    // todo: call by interceptor
+    public void validateWaitingQueueToken(String token, LocalDateTime currentTime) {
+        GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
+        WaitingQueue waitingQueue = waitingQueueService.getWaitingQueue(query);
+
+        boolean available = waitingQueue.isAvailable(currentTime);
+        if(!available) {
+            throw WaitingQueueException.INVALID_WAITING_QUEUE;
+        }
     }
 }
