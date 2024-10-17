@@ -1,13 +1,12 @@
 package io.hhplus.concert.domain.waitingqueue;
 
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueueCommand;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +17,9 @@ public class WaitingQueueService {
     private final WaitingQueueRepository waitingQueueRepository;
 
     @Transactional
-    public WaitingQueue createWaitingQueue(CreateWaitingQueueCommand command) {
-        return waitingQueueRepository.createWaitingQueue(command);
+    public WaitingQueue createWaitingQueue(CreateWaitingQueue command) {
+        WaitingQueue waitingQueue = new WaitingQueue(command);
+        return waitingQueueRepository.saveWaitingQueue(waitingQueue);
     }
 
     @Transactional(readOnly = true)

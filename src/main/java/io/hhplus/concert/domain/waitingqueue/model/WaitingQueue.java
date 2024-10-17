@@ -1,6 +1,6 @@
 package io.hhplus.concert.domain.waitingqueue.model;
 
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueueCommand;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,7 +42,7 @@ public class WaitingQueue {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public WaitingQueue(CreateWaitingQueueCommand command) {
+    public WaitingQueue(CreateWaitingQueue command) {
         this.token = command.getToken();
         this.status = command.getStatus();
         this.expireAt = command.getExpireAt();

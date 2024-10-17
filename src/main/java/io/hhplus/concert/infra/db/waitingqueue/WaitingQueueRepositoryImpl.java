@@ -1,7 +1,6 @@
 package io.hhplus.concert.infra.db.waitingqueue;
 
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueRepository;
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueueCommand;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
@@ -19,8 +18,7 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     private final WaitingQueueJpaRepository waitingQueueJpaRepository;
 
     @Override
-    public WaitingQueue createWaitingQueue(CreateWaitingQueueCommand command) {
-        WaitingQueue waitingQueue = new WaitingQueue(command);
+    public WaitingQueue saveWaitingQueue(WaitingQueue waitingQueue) {
         return waitingQueueJpaRepository.save(waitingQueue);
     }
 

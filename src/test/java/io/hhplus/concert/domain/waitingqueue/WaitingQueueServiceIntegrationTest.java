@@ -3,7 +3,7 @@ package io.hhplus.concert.domain.waitingqueue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueueCommand;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
@@ -43,7 +43,7 @@ class WaitingQueueServiceIntegrationTest {
         @Test
         void should_ReturnWaitingQueue_When_CommandGiven() {
             // given
-            CreateWaitingQueueCommand command = new CreateWaitingQueueCommand("token",
+            CreateWaitingQueue command = new CreateWaitingQueue("token",
                 WaitingQueueStatus.WAITING, LocalDateTime.now());
 
             // when
@@ -60,7 +60,7 @@ class WaitingQueueServiceIntegrationTest {
         @Test
         void should_SaveWaitingQueue_When_CommandGiven() {
             // given
-            CreateWaitingQueueCommand command = new CreateWaitingQueueCommand("token",
+            CreateWaitingQueue command = new CreateWaitingQueue("token",
                 WaitingQueueStatus.WAITING, LocalDateTime.now());
 
             // when
@@ -98,7 +98,7 @@ class WaitingQueueServiceIntegrationTest {
         void should_ReturnWaitingQueueException_When_Found() {
             // given
             String token = "token";
-            CreateWaitingQueueCommand command = new CreateWaitingQueueCommand(token,
+            CreateWaitingQueue command = new CreateWaitingQueue(token,
                 WaitingQueueStatus.WAITING, LocalDateTime.now());
             WaitingQueue givenWaitingQueue = new WaitingQueue(command);
             waitingQueueJpaRepository.save(givenWaitingQueue);
