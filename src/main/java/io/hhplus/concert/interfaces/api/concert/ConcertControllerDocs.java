@@ -1,6 +1,6 @@
 package io.hhplus.concert.interfaces.api.concert;
 
-import io.hhplus.concert.interfaces.api.common.response.ApiResponse;
+import io.hhplus.concert.interfaces.api.common.response.ApiResult;
 import io.hhplus.concert.interfaces.api.concert.ConcertResponse.ConcertItem;
 import io.hhplus.concert.interfaces.api.concert.ConcertResponse.ConcertScheduleItem;
 import io.hhplus.concert.interfaces.api.concert.ConcertResponse.ConcertSeatItem;
@@ -15,20 +15,20 @@ import java.util.List;
 public interface ConcertControllerDocs {
 
     @Operation(summary = "콘서트 목록 조회", description = "콘서트 목록 반환")
-    ApiResponse<List<ConcertItem>> getConcerts();
+    ApiResult<List<ConcertItem>> getConcerts();
 
     @SecurityRequirement(name = "queueToken")
     @Operation(summary = "예약 가능 날짜 조회", description = "예약 가능 날짜 목록 반환")
-    ApiResponse<List<ConcertScheduleItem>> getConcertSchedules(Long concertId,
+    ApiResult<List<ConcertScheduleItem>> getConcertSchedules(Long concertId,
         @Parameter(hidden = true) String token);
 
     @SecurityRequirement(name = "queueToken")
     @Operation(summary = "예약 가능한 좌석 정보 조회", description = "예약 가능한 좌석 목록 반환")
-    ApiResponse<List<ConcertSeatItem>> getConcertSeats(Long concertId, Long scheduleId,
+    ApiResult<List<ConcertSeatItem>> getConcertSeats(Long concertId, Long scheduleId,
         @Parameter(hidden = true) String token);
 
     @SecurityRequirement(name = "queueToken")
     @Operation(summary = "좌석 예약 요청", description = "날짜와 좌석 정보를 입력받아 좌석을 예약 처리")
-    ApiResponse<ReserveConcertResult> reserveConcert(Long concertId, Long scheduleId,
+    ApiResult<ReserveConcertResult> reserveConcert(Long concertId, Long scheduleId,
         ConcertRequest.ReserveConcert request, @Parameter(hidden = true) String token);
 }

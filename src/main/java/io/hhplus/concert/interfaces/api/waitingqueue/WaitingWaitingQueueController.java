@@ -1,7 +1,7 @@
 package io.hhplus.concert.interfaces.api.waitingqueue;
 
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
-import io.hhplus.concert.interfaces.api.common.response.ApiResponse;
+import io.hhplus.concert.interfaces.api.common.response.ApiResult;
 import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueRequest.CreateQueue;
 import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueResponse.CreateQueueToken;
 import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueResponse.GetQueue;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WaitingWaitingQueueController implements WaitingQueueControllerDocs {
 
     @GetMapping
-    public ApiResponse<GetQueue> GetQueue(@RequestHeader("X-QUEUE-TOKEN") String token) {
+    public ApiResult<GetQueue> GetQueue(@RequestHeader("X-QUEUE-TOKEN") String token) {
         GetQueue mockData = GetQueue.builder()
             .order(77L)
             .remainingWaitingCount(50)
@@ -26,11 +26,11 @@ public class WaitingWaitingQueueController implements WaitingQueueControllerDocs
             .expiredAt(LocalDateTime.now().plusMinutes(30))
             .build();
 
-        return ApiResponse.OK(mockData);
+        return ApiResult.OK(mockData);
     }
 
     @PostMapping("/token")
-    public ApiResponse<CreateQueueToken> createQueue(@RequestBody CreateQueue request) {
+    public ApiResult<CreateQueueToken> createQueue(@RequestBody CreateQueue request) {
 
         CreateQueueToken mockData = CreateQueueToken.builder()
             .token("fc469731-7a49-4eba-b911-bfeec7e9b341")
@@ -39,6 +39,6 @@ public class WaitingWaitingQueueController implements WaitingQueueControllerDocs
             .expiredAt(LocalDateTime.now().plusMinutes(30))
             .build();
 
-        return ApiResponse.OK(mockData);
+        return ApiResult.OK(mockData);
     }
 }
