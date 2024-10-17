@@ -1,7 +1,9 @@
 package io.hhplus.concert.interfaces.api.concert;
 
+import io.hhplus.concert.application.concert.ConcertDto.ConcertReservationInfo;
+import io.hhplus.concert.application.concert.ConcertDto.ConcertScheduleInfo;
+import io.hhplus.concert.application.concert.ConcertDto.ConcertSeatInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,13 +36,20 @@ public class ConcertResponse {
         private Long concertScheduleId;
 
         @Schema(description = "콘서트 스케줄 날짜")
-        private LocalDate concertScheduledDate;
+        private LocalDateTime scheduledAt;
 
         @Schema(description = "콘서트 시작 일시")
         private LocalDateTime concertStartAt;
 
         @Schema(description = "콘서트 종료 일시")
         private LocalDateTime concertEndAt;
+
+        public ConcertScheduleItem(ConcertScheduleInfo ConcertScheduleInfo) {
+            this.concertScheduleId = ConcertScheduleInfo.getId();
+            this.scheduledAt = ConcertScheduleInfo.getScheduledAt();
+            this.concertStartAt = ConcertScheduleInfo.getStartAt();
+            this.concertEndAt = ConcertScheduleInfo.getEndAt();
+        }
     }
 
     @Getter
@@ -55,6 +64,12 @@ public class ConcertResponse {
 
         @Schema(description = "콘서트 좌석 가격")
         private int priceAmount;
+
+        public ConcertSeatItem(ConcertSeatInfo concertSeatInfo) {
+            this.concertSeatId = concertSeatInfo.getId();
+            this.seatNumber = concertSeatInfo.getSeatNumber();
+            this.priceAmount = concertSeatInfo.getPriceAmount();
+        }
     }
 
     @Getter
@@ -65,5 +80,10 @@ public class ConcertResponse {
 
         @Schema(description = "결제 할 가격")
         private int priceAmount;
+
+        public ReserveConcertResult(ConcertReservationInfo concertReservationInfo) {
+            this.reservationId = concertReservationInfo.getId();
+            this.priceAmount = concertReservationInfo.getPaidAmount();
+        }
     }
 }

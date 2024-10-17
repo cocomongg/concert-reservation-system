@@ -1,5 +1,6 @@
 package io.hhplus.concert.interfaces.api.payment;
 
+import io.hhplus.concert.application.payment.PaymentDto.PaymentInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -12,19 +13,25 @@ public class PaymentResponse {
     @Builder
     @AllArgsConstructor
     public static class PaymentResult {
-        @Schema(description = "결제 성공한 콘서트 Id")
-        private Long concertId;
-
-        @Schema(description = "결제 성공한 콘서트 이름")
-        private String concertTitle;
-
-        @Schema(description = "결제 성공한 콘서트 좌석")
-        private int seatNumber;
+        @Schema(description = "콘서트 예약 Id")
+        private Long reservationId;
 
         @Schema(description = "결제 id")
         private Long paymentId;
 
         @Schema(description = "결제 금액")
         private int paidAmount;
+
+        @Schema(description = "결제 시각")
+        private LocalDateTime paidAt;
+
+        public static PaymentResult from(PaymentInfo paymentInfo) {
+            return PaymentResult.builder()
+                .reservationId(paymentInfo.getReservationId())
+                .paymentId(paymentInfo.getId())
+                .paidAmount(paymentInfo.getPaidAmount())
+                .paidAt(paymentInfo.getPaidAt())
+                .build();
+        }
     }
 }

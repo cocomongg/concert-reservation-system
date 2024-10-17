@@ -20,22 +20,22 @@ import java.util.List;
 @Tag(name = "콘서트 API", description = "콘서트 관련 API")
 public interface ConcertControllerDocs {
 
-    @Operation(summary = "콘서트 목록 조회", description = "콘서트 목록 반환")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "콘서트 목록 반환 성공",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ConcertItem.class))),
-        @ApiResponse(responseCode = "400", description = "Bad Request",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ApiErrorResponse.class))),
-        @ApiResponse(responseCode = "404", description = "Not Found",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ApiErrorResponse.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ApiErrorResponse.class))),
-    })
-    ApiResult<List<ConcertItem>> getConcerts();
+//    @Operation(summary = "콘서트 목록 조회", description = "콘서트 목록 반환")
+//    @ApiResponses(value = {
+//        @ApiResponse(responseCode = "200", description = "콘서트 목록 반환 성공",
+//            content = @Content(mediaType = "application/json",
+//                schema = @Schema(implementation = ConcertItem.class))),
+//        @ApiResponse(responseCode = "400", description = "Bad Request",
+//            content = @Content(mediaType = "application/json",
+//                schema = @Schema(implementation = ApiErrorResponse.class))),
+//        @ApiResponse(responseCode = "404", description = "Not Found",
+//            content = @Content(mediaType = "application/json",
+//                schema = @Schema(implementation = ApiErrorResponse.class))),
+//        @ApiResponse(responseCode = "500", description = "Internal server error",
+//            content = @Content(mediaType = "application/json",
+//                schema = @Schema(implementation = ApiErrorResponse.class))),
+//    })
+//    ApiResult<List<ConcertItem>> getConcerts();
 
     @SecurityRequirement(name = "queueToken")
     @Operation(summary = "예약 가능 날짜 조회", description = "예약 가능 날짜 목록 반환")

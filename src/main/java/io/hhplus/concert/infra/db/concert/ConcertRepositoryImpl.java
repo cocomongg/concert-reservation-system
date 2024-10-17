@@ -31,6 +31,12 @@ public class ConcertRepositoryImpl implements ConcertRepository {
     }
 
     @Override
+    public ConcertSeat getConcertSeatWithLock(GetConcertSeat query) {
+        return concertSeatJpaRepository.findByIdWithLock(query.getConcertSeatId())
+            .orElseThrow(() -> ConcertException.CONCERT_SEAT_NOT_FOUND);
+    }
+
+    @Override
     public ConcertReservation saveConcertReservation(ConcertReservation reservation) {
         return concertReservationJpaRepository.save(reservation);
     }

@@ -15,6 +15,8 @@ public interface ConcertRepository {
 
     ConcertSeat getConcertSeat(GetConcertSeat query);
 
+    ConcertSeat getConcertSeatWithLock(GetConcertSeat query);
+
     ConcertReservation saveConcertReservation(ConcertReservation reservation);
 
     Concert getConcert(GetConcert query);

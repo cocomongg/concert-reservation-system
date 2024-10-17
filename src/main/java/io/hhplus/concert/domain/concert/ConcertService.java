@@ -28,6 +28,11 @@ public class ConcertService {
         return concertRepository.getConcertSeat(query);
     }
 
+    @Transactional(readOnly = true)
+    public ConcertSeat getConcertSeatWithLock(GetConcertSeat query) {
+        return concertRepository.getConcertSeatWithLock(query);
+    }
+
     @Transactional
     public ConcertReservation createConcertReservation(CreateConcertReservation command) {
         ConcertReservation concertReservation = new ConcertReservation(command);
