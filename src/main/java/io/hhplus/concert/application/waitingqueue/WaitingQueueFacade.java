@@ -1,11 +1,14 @@
 package io.hhplus.concert.application.waitingqueue;
 
 import io.hhplus.concert.application.waitingqueue.dto.WaitingQueueDto.WaitingQueueInfo;
+import io.hhplus.concert.application.waitingqueue.dto.WaitingQueueDto.WaitingQueueWithOrderInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueTokenGenerator;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,5 +35,13 @@ public class WaitingQueueFacade {
 
         WaitingQueue waitingQueue = waitingQueueService.createWaitingQueue(command);
         return new WaitingQueueInfo(waitingQueue);
+    }
+
+    public WaitingQueueWithOrderInfo getWaitingQueueWithOrder(String token) {
+        GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
+        WaitingQueueWithOrder waitingQueueWithOrder =
+            waitingQueueService.getWaitingQueueWithOrder(query);
+
+        return new WaitingQueueWithOrderInfo(waitingQueueWithOrder);
     }
 }

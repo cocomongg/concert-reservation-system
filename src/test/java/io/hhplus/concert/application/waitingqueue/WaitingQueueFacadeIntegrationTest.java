@@ -1,9 +1,13 @@
 package io.hhplus.concert.application.waitingqueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.hhplus.concert.application.waitingqueue.dto.WaitingQueueDto.WaitingQueueInfo;
+import io.hhplus.concert.application.waitingqueue.dto.WaitingQueueDto.WaitingQueueWithOrderInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
+import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
+import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
@@ -71,6 +75,82 @@ class WaitingQueueFacadeIntegrationTest {
             // then
             assertThat(waitingQueueInfo.getStatus()).isEqualTo(WaitingQueueStatus.WAITING);
             assertThat(waitingQueueInfo.getExpireAt()).isNull();
+        }
+    }
+
+    @DisplayName("getWaitingQueueWithOrder() 테스트")
+    @Nested
+    class GetWaitingQueueWithOrderTest {
+        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_WaitingQueueNotFound () {
+            // given
+            String token = "InvalidToken";
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueFacade.getWaitingQueueWithOrder(token))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+        }
+
+        @DisplayName("토큰에 해당하는 waitingQueue가 대기상태가 아니라면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_StatusIsNotWaiting () {
+            // given
+            String token = "token";
+            WaitingQueue waitingQueue = WaitingQueue.builder()
+                .token(token)
+                .status(WaitingQueueStatus.ACTIVE)
+                .expireAt(LocalDateTime.now().plusMinutes(1))
+                .createdAt(LocalDateTime.now())
+                .build();
+
+            waitingQueueJpaRepository.save(waitingQueue);
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueFacade.getWaitingQueueWithOrder(token))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_STATE_NOT_WAITING.getMessage());
+        }
+
+        @DisplayName("토큰에 해당하는 waitingQueue가 대기상태라면 WaitingQueueWithOrder를 반환한다.")
+        @Test
+        void should_ReturnWaitingQueueWithOrderInfo_When_StatusIsWaiting() {
+            // given
+            String token = "token3";
+            WaitingQueue activeWaitingQueue = WaitingQueue.builder()
+                .token("token1")
+                .status(WaitingQueueStatus.ACTIVE)
+                .expireAt(LocalDateTime.now().plusMinutes(1))
+                .createdAt(LocalDateTime.now())
+                .build();
+
+            WaitingQueue waitedWaitingQueue1 = WaitingQueue.builder()
+                .token("token2")
+                .status(WaitingQueueStatus.WAITING)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+            WaitingQueue waitedWaitingQueue2 = WaitingQueue.builder()
+                .token(token)
+                .status(WaitingQueueStatus.WAITING)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+            waitingQueueJpaRepository.saveAll(List.of(activeWaitingQueue, waitedWaitingQueue1,
+                waitedWaitingQueue2));
+
+            // when
+            WaitingQueueWithOrderInfo waitingQueueWithOrderInfo =
+                waitingQueueFacade.getWaitingQueueWithOrder(token);
+
+            // then
+            WaitingQueueInfo waitingQueueInfo = waitingQueueWithOrderInfo.getWaitingQueueInfo();
+            assertThat(waitingQueueInfo.getToken()).isEqualTo(token);
+            assertThat(waitingQueueInfo.getStatus()).isEqualTo(WaitingQueueStatus.WAITING);
+
+            Long order = waitingQueueWithOrderInfo.getOrder();
+            assertThat(order).isEqualTo(2L);
         }
     }
 }
