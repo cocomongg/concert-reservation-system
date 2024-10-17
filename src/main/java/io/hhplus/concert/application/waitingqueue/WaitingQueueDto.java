@@ -1,4 +1,4 @@
-package io.hhplus.concert.application.waitingqueue.dto;
+package io.hhplus.concert.application.waitingqueue;
 
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;

@@ -1,7 +1,7 @@
 package io.hhplus.concert.application.waitingqueue;
 
-import io.hhplus.concert.application.waitingqueue.dto.WaitingQueueDto.WaitingQueueInfo;
-import io.hhplus.concert.application.waitingqueue.dto.WaitingQueueDto.WaitingQueueWithOrderInfo;
+import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueInfo;
+import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueWithOrderInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueTokenGenerator;
