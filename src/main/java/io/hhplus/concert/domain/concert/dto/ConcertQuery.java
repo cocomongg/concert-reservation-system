@@ -37,4 +37,10 @@ public class ConcertQuery {
         private final long concertScheduleId;
         private final LocalDateTime currentTime;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public static class GetConcertReservation {
+        private final long concertReservationId;
+    }
 }

@@ -50,4 +50,10 @@ public class ConcertReservation {
         this.reservedAt = command.getDateTime();
         this.createdAt = LocalDateTime.now();
     }
+
+    public void completeReservation(LocalDateTime currentTime) {
+        this.status = ConcertReservationStatus.COMPLETED;
+        this.reservedAt = currentTime;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

@@ -1,6 +1,7 @@
 package io.hhplus.concert.domain.concert;
 
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcert;
+import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSchedules;
@@ -23,4 +24,6 @@ public interface ConcertRepository {
     List<ConcertSchedule> getReservableConcertSchedules(GetReservableConcertSchedules query);
 
     List<ConcertSeat> getConcertSeats(long concertScheduleId);
+
+    ConcertReservation getConcertReservation(GetConcertReservation query);
 }

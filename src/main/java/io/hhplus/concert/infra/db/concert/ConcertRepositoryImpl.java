@@ -2,6 +2,7 @@ package io.hhplus.concert.infra.db.concert;
 
 import io.hhplus.concert.domain.concert.ConcertRepository;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcert;
+import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSchedules;
@@ -56,5 +57,11 @@ public class ConcertRepositoryImpl implements ConcertRepository {
     @Override
     public List<ConcertSeat> getConcertSeats(long concertScheduleId) {
         return concertSeatJpaRepository.findAllByConcertScheduleId(concertScheduleId);
+    }
+
+    @Override
+    public ConcertReservation getConcertReservation(GetConcertReservation query) {
+        return concertReservationJpaRepository.findById(query.getConcertReservationId())
+            .orElseThrow(() -> ConcertException.CONCERT_RESERVATION_NOT_FOUND);
     }
 }

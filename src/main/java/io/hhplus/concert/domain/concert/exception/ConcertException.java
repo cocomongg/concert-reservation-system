@@ -14,6 +14,9 @@ public class ConcertException extends DomainException {
     public static ConcertException CONCERT_SCHEDULE_NOT_FOUND =
         new ConcertException(ConcertErrorCode.CONCERT_SCHEDULE_NOT_FOUND);
 
+    public static ConcertException CONCERT_RESERVATION_NOT_FOUND =
+        new ConcertException(ConcertErrorCode.CONCERT_RESERVATION_NOT_FOUND);
+
     public ConcertException(DomainErrorCode errorCode) {
         super(errorCode);
     }

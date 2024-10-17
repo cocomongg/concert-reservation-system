@@ -119,4 +119,21 @@ class ConcertSeatTest {
             assertThat(result).isFalse();
         }
     }
+
+    @DisplayName("completeReservation()을 호출하면 예약이 완료된다.")
+    @Test
+    void should_ReservedComplete_When_CallCompleteReservation () {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        ConcertSeat concertSeat = ConcertSeat.builder()
+            .status(ConcertSeatStatus.AVAILABLE)
+            .build();
+
+        // when
+        concertSeat.completeReservation(now);
+
+        // then
+        assertThat(concertSeat.getStatus()).isEqualTo(ConcertSeatStatus.RESERVED_COMPLETE);
+        assertThat(concertSeat.getReservedAt()).isEqualTo(now);
+    }
 }

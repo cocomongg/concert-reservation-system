@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.CreateConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcert;
+import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSchedules;
@@ -335,6 +336,44 @@ class ConcertServiceIntegrationTest {
                     reservableConcertSeat1.getSeatNumber(),
                     reservableConcertSeat2.getSeatNumber()
                 );
+        }
+    }
+
+    @DisplayName("getConcertReservation() 테스트")
+    @Nested
+    class GetConcertReservationTest {
+        @DisplayName("id에 해당하는 concertReservation이 없다면 ConcertException이 발생한다.")
+        @Test
+        void should_ThrowConcertException_When_ConcertReservationNotFound() {
+            // given
+            long concertReservationId = 0L;
+            GetConcertReservation query = new GetConcertReservation(concertReservationId);
+
+            // when, then
+            assertThatThrownBy(() -> concertService.getConcertReservation(query))
+                .isInstanceOf(ConcertException.class)
+                .hasMessage(ConcertErrorCode.CONCERT_RESERVATION_NOT_FOUND.getMessage());
+        }
+
+        @DisplayName("id에 해당하는 concertReservation을 반환한다.")
+        @Test
+        void should_ReturnConcertReservation_When_ConcertReservationFound() {
+            // given
+            ConcertReservation concertReservation = new ConcertReservation(null, 1L, 1L,
+                ConcertReservationStatus.PENDING, null, LocalDateTime.now(), null);
+
+            ConcertReservation savedConcertReservation =
+                concertReservationJpaRepository.save(concertReservation);
+
+            GetConcertReservation query =
+                new GetConcertReservation(savedConcertReservation.getId());
+            // when
+            ConcertReservation result = concertService.getConcertReservation(query);
+
+            // then
+            assertThat(result.getMemberId()).isEqualTo(savedConcertReservation.getMemberId());
+            assertThat(result.getConcertSeatId()).isEqualTo(savedConcertReservation.getConcertSeatId());
+            assertThat(result.getStatus()).isEqualTo(savedConcertReservation.getStatus());
         }
     }
 }

@@ -3,6 +3,7 @@ package io.hhplus.concert.domain.concert;
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.CreateConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcert;
+import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSchedules;
@@ -56,5 +57,10 @@ public class ConcertService {
         return reservableConcertSeats.stream()
             .filter(concertSeat -> concertSeat.isReservable(query.getCurrentTime(), ServicePolicy.TEMP_RESERVE_DURATION_MINUTES))
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ConcertReservation getConcertReservation(GetConcertReservation query) {
+        return concertRepository.getConcertReservation(query);
     }
 }

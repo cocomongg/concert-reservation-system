@@ -10,7 +10,8 @@ import lombok.Getter;
 public enum ConcertErrorCode implements DomainErrorCode {
     CONCERT_SEAT_NOT_FOUND(404, "C_404_1", "ConcertSeat not found"),
     CONCERT_NOT_FOUND(404, "C_404_2", "Concert not found"),
-    CONCERT_SCHEDULE_NOT_FOUND(404, "C_404_3", "ConcertSchedule not found");
+    CONCERT_SCHEDULE_NOT_FOUND(404, "C_404_3", "ConcertSchedule not found"),
+    CONCERT_RESERVATION_NOT_FOUND(404, "C_404_4", "ConcertReservation not found");
 
 
     private final int status;
