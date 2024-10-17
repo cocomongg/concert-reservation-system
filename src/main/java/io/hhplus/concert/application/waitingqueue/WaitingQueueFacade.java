@@ -56,4 +56,13 @@ public class WaitingQueueFacade {
             throw WaitingQueueException.INVALID_WAITING_QUEUE;
         }
     }
+
+    //todo: call by activate scheduler
+    public void activateOldestWaitedQueues() {
+        Long activeCount = waitingQueueService.getActiveCount();
+        int maxActiveCount = ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT;
+
+        int countToActivate = maxActiveCount - activeCount.intValue();
+        waitingQueueService.activateOldestWaitedQueues(countToActivate);
+    }
 }

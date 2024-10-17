@@ -233,4 +233,83 @@ class WaitingQueueFacadeIntegrationTest {
             waitingQueueFacade.validateWaitingQueueToken(token, now);
         }
     }
+
+    @DisplayName("activateOldestWaitedQueues() 테스트")
+    @Nested
+    class ActivateOldestWaitedQueuesTest {
+        @DisplayName("최대 가용인원인 상태이면 아무일도 발생하지 않는다.")
+        @Test
+        void should_NothingHappen_When_ActiveCountIsMax() {
+            // given
+            int maxActivateCount = ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT;
+            for(int i = 0; i < maxActivateCount; ++i) {
+                WaitingQueue waitingQueue = WaitingQueue.builder()
+                    .token("token" + i)
+                    .status(WaitingQueueStatus.ACTIVE)
+                    .expireAt(LocalDateTime.now().plusMinutes(1))
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+                waitingQueueJpaRepository.save(waitingQueue);
+            }
+
+            WaitingQueue savedWaitedQueue = waitingQueueJpaRepository.save(WaitingQueue.builder()
+                .token("token")
+                .status(WaitingQueueStatus.WAITING)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+            // when
+            waitingQueueFacade.activateOldestWaitedQueues();
+
+            // then
+            WaitingQueue waitedQueue = waitingQueueJpaRepository.findById(savedWaitedQueue.getId())
+                .orElse(null);
+            assertThat(waitedQueue).isNotNull();
+            assertThat(waitedQueue.getStatus()).isEqualTo(WaitingQueueStatus.WAITING);
+        }
+
+        @DisplayName("최대 가용인원보다 활성화된 사용자가 적은 상태이면 오래기다린 순서대로 대기열을 활성화한다.")
+        @Test
+        void should_ActivateOldestWaitedQueues_When_ActiveCountIsNotMax () {
+            // given
+            int maxActivateCount = ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT;
+            for(int i = 0; i < maxActivateCount - 1; ++i) {
+                WaitingQueue waitingQueue = WaitingQueue.builder()
+                    .token("token" + i)
+                    .status(WaitingQueueStatus.ACTIVE)
+                    .expireAt(LocalDateTime.now().plusMinutes(1))
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+                waitingQueueJpaRepository.save(waitingQueue);
+            }
+
+            WaitingQueue waitingQueueToActive = waitingQueueJpaRepository.save(WaitingQueue.builder()
+                .token("token50")
+                .status(WaitingQueueStatus.WAITING)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+            WaitingQueue waitingQueueNotToActive = waitingQueueJpaRepository.save(WaitingQueue.builder()
+                .token("token51")
+                .status(WaitingQueueStatus.WAITING)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+            // when
+            waitingQueueFacade.activateOldestWaitedQueues();
+
+            // then
+            WaitingQueue activatedQueue = waitingQueueJpaRepository.findById(waitingQueueToActive.getId())
+                .orElse(null);
+            assertThat(activatedQueue).isNotNull();
+            assertThat(activatedQueue.getStatus()).isEqualTo(WaitingQueueStatus.ACTIVE);
+
+            WaitingQueue notActivatedQueue = waitingQueueJpaRepository.findById(waitingQueueNotToActive.getId())
+                .orElse(null);
+            assertThat(notActivatedQueue).isNotNull();
+            assertThat(notActivatedQueue.getStatus()).isEqualTo(WaitingQueueStatus.WAITING);
+        }
+    }
 }
