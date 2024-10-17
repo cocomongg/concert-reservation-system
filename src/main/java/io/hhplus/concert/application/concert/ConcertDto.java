@@ -16,18 +16,18 @@ public class ConcertDto {
     public static class ConcertScheduleInfo {
         private final Long id;
         private final Long concertId;
-        private final String scheduledAt;
-        private final String startAt;
-        private final String endAt;
-        private final String createdAt;
+        private final LocalDateTime scheduledAt;
+        private final LocalDateTime startAt;
+        private final LocalDateTime endAt;
+        private final LocalDateTime createdAt;
 
         public ConcertScheduleInfo(ConcertSchedule concertSchedule) {
             this.id = concertSchedule.getId();
             this.concertId = concertSchedule.getConcertId();
-            this.scheduledAt = concertSchedule.getScheduledAt().toString();
-            this.startAt = concertSchedule.getStartAt().toString();
-            this.endAt = concertSchedule.getEndAt().toString();
-            this.createdAt = concertSchedule.getCreatedAt().toString();
+            this.scheduledAt = concertSchedule.getScheduledAt();
+            this.startAt = concertSchedule.getStartAt();
+            this.endAt = concertSchedule.getEndAt();
+            this.createdAt = concertSchedule.getCreatedAt();
         }
     }
 
@@ -57,14 +57,16 @@ public class ConcertDto {
         private final Long id;
         private final Long memberId;
         private final Long concertSeatId;
+        private final int paidAmount;
         private final ConcertReservationStatus status;
         private final LocalDateTime reservedAt;
         private final LocalDateTime createdAt;
 
-        public ConcertReservationInfo(ConcertReservation concertReservation) {
+        public ConcertReservationInfo(ConcertReservation concertReservation, ConcertSeat concertSeat) {
             this.id = concertReservation.getId();
             this.memberId = concertReservation.getMemberId();
             this.concertSeatId = concertReservation.getConcertSeatId();
+            this.paidAmount = concertSeat.getPriceAmount();
             this.status = concertReservation.getStatus();
             this.reservedAt = concertReservation.getReservedAt();
             this.createdAt = concertReservation.getCreatedAt();

@@ -73,6 +73,6 @@ public class ConcertFacade {
         ConcertReservation concertReservation = concertService.createConcertReservation(
             new CreateConcertReservation(member.getId(), concertSeat.getId(), dateTime));
 
-        return new ConcertReservationInfo(concertReservation);
+        return new ConcertReservationInfo(concertReservation, concertSeat);
     }
 }
