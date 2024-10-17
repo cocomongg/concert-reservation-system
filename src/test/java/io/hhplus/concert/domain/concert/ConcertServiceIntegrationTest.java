@@ -262,7 +262,7 @@ class ConcertServiceIntegrationTest {
 
     @DisplayName("getReservableConcertSeats() 테스트")
     @Nested
-    class GetReservaableConcertSeatsTest {
+    class GetReservableConcertSeatsTest {
         @DisplayName("현재 시간 기준으로 예약 가능한 concertSeat이 없다면 빈 리스트를 반환한다.")
         @Test
         void should_ReturnEmptyList_When_ReservableConcertSeatNotExist() {
@@ -337,5 +337,4 @@ class ConcertServiceIntegrationTest {
                 );
         }
     }
-
 }
