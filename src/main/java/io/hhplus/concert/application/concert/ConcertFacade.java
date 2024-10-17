@@ -60,7 +60,7 @@ public class ConcertFacade {
         Member member = memberService.getMember(memberId);
 
         ConcertSeat concertSeat =
-            concertService.getConcertSeat(new GetConcertSeat(concertSeatId));
+            concertService.getConcertSeatWithLock(new GetConcertSeat(concertSeatId));
 
         boolean isReservableSeat =
             concertSeat.isReservable(dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);

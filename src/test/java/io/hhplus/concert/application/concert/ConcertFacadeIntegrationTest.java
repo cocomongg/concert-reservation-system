@@ -9,6 +9,7 @@ import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.exception.ConcertErrorCode;
 import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.Concert;
+import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
 import io.hhplus.concert.domain.concert.model.ConcertSchedule;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
@@ -23,6 +24,9 @@ import io.hhplus.concert.infra.db.concert.ConcertSeatJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberJpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -424,4 +428,61 @@ class ConcertFacadeIntegrationTest {
                 .build());
         }
     }
+
+    @DisplayName("콘서트 좌석 예약 동시성 테스트")
+    @Test
+    void should_CreateSingleReservation_when_ThirtyConcurrentRequestsForSameSeat()
+        throws InterruptedException {
+        // given
+        Member defaultMember = memberJpaRepository.save(Member.builder()
+            .name("name")
+            .email("email")
+            .createdAt(LocalDateTime.now())
+            .build());
+
+        ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat
+            .builder()
+            .concertScheduleId(1L)
+            .seatNumber(1)
+            .status(ConcertSeatStatus.AVAILABLE)
+            .priceAmount(10000)
+            .createdAt(LocalDateTime.now())
+            .build());
+
+        long concertSeatId = savedSeat.getId();
+        long memberId = defaultMember.getId();
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        // when
+        int attemptCount = 30;
+        ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
+        CountDownLatch latch = new CountDownLatch(attemptCount);
+
+        for (int i = 0; i < attemptCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executorService.shutdown();
+
+        // then
+        List<ConcertReservation> reservations = concertReservationJpaRepository.findAll();
+        assertThat(reservations).hasSize(1);
+
+        ConcertReservation concertReservation = reservations.get(0);
+        assertThat(concertReservation.getMemberId()).isEqualTo(memberId);
+        assertThat(concertReservation.getConcertSeatId()).isEqualTo(concertSeatId);
+        assertThat(concertReservation.getStatus()).isEqualTo(ConcertReservationStatus.PENDING);
+
+        ConcertSeat updatedSeat = concertSeatJpaRepository.findById(concertSeatId).orElse(null);
+        assertThat(updatedSeat).isNotNull();
+        assertThat(updatedSeat.getTempReservedAt()).isEqualTo(dateTime);
+    }
+
 }

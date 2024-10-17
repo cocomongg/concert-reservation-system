@@ -46,6 +46,9 @@ public class ConcertSeat {
     @Column(name = "reserved_at")
     private LocalDateTime reservedAt;
 
+    @Version
+    private Long version;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
