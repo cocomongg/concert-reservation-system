@@ -1,8 +1,11 @@
 package io.hhplus.concert.application.concert;
 
+import io.hhplus.concert.domain.concert.model.ConcertReservation;
+import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
 import io.hhplus.concert.domain.concert.model.ConcertSchedule;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -45,6 +48,26 @@ public class ConcertDto {
             this.status = concertSeat.getStatus();
             this.priceAmount = concertSeat.getPriceAmount();
             this.createdAt = concertSeat.getCreatedAt().toString();
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ConcertReservationInfo {
+        private final Long id;
+        private final Long memberId;
+        private final Long concertSeatId;
+        private final ConcertReservationStatus status;
+        private final LocalDateTime reservedAt;
+        private final LocalDateTime createdAt;
+
+        public ConcertReservationInfo(ConcertReservation concertReservation) {
+            this.id = concertReservation.getId();
+            this.memberId = concertReservation.getMemberId();
+            this.concertSeatId = concertReservation.getConcertSeatId();
+            this.status = concertReservation.getStatus();
+            this.reservedAt = concertReservation.getReservedAt();
+            this.createdAt = concertReservation.getCreatedAt();
         }
     }
 
