@@ -30,4 +30,9 @@ public class MemberRepositoryImpl implements MemberRepository {
     public MemberPoint saveMemberPoint(MemberPoint memberPoint) {
         return memberPointJpaRepository.save(memberPoint);
     }
+
+    @Override
+    public boolean existsMember(Long memberId) {
+        return memberJpaRepository.existsById(memberId);
+    }
 }

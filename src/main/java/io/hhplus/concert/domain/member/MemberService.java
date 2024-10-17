@@ -19,6 +19,11 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
+    public boolean existsMember(Long memberId) {
+        return memberRepository.existsMember(memberId);
+    }
+
+    @Transactional(readOnly = true)
     public Optional<MemberPoint> getOptionalMemberPoint(Long memberId) {
         return memberRepository.getOptionalMemberPoint(memberId);
     }

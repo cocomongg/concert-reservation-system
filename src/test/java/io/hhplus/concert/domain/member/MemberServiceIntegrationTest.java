@@ -157,4 +157,36 @@ class MemberServiceIntegrationTest {
             assertThat(result.getPointAmount()).isEqualTo(savedMemberPoint.getPointAmount());
         }
     }
+    
+    @DisplayName("existsMember() 테스트")
+    @Nested
+    class ExistsMemberTest {
+        @DisplayName("memberId에 해당하는 member가 없으면 false를 반환한다.")
+        @Test
+        void should_ReturnFalse_When_MemberNotExists () {
+            // given
+            Long memberId = 0L;
+            
+            // when
+            boolean result = memberService.existsMember(memberId);
+        
+            // then
+            assertThat(result).isFalse();
+        }
+
+        @DisplayName("memberId에 해당하는 member가 있으면 true를 반환한다.")
+        @Test
+        void should_ReturnTrue_When_MemberExists () {
+            // given
+            Member member =
+                new Member(null, "email", "name", LocalDateTime.now(), null);
+            Member savedMember = memberJpaRepository.save(member);
+
+            // when
+            boolean result = memberService.existsMember(savedMember.getId());
+
+            // then
+            assertThat(result).isTrue();
+        }
+    }
 }
