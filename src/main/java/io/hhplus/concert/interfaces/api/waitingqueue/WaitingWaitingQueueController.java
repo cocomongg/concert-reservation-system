@@ -22,7 +22,7 @@ public class WaitingWaitingQueueController implements WaitingQueueControllerDocs
         GetQueue mockData = GetQueue.builder()
             .order(77L)
             .remainingWaitingCount(50)
-            .queueStatus(WaitingQueueStatus.WAITED.toString())
+            .queueStatus(WaitingQueueStatus.WAITING.toString())
             .expiredAt(LocalDateTime.now().plusMinutes(30))
             .build();
 
@@ -35,7 +35,7 @@ public class WaitingWaitingQueueController implements WaitingQueueControllerDocs
         CreateQueueToken mockData = CreateQueueToken.builder()
             .token("fc469731-7a49-4eba-b911-bfeec7e9b341")
             .order(10L)
-            .queueStatus(WaitingQueueStatus.WAITED.toString())
+            .queueStatus(WaitingQueueStatus.WAITING.toString())
             .expiredAt(LocalDateTime.now().plusMinutes(30))
             .build();
 

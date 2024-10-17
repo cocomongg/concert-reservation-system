@@ -7,10 +7,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -45,4 +51,32 @@ public class ConcertSeat {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public boolean isReservable(LocalDateTime currentTime, int tempReserveDurationMinutes) {
+        if (this.isTemporarilyReserved(currentTime, tempReserveDurationMinutes)) {
+            return false;
+        }
+
+        if (ConcertSeatStatus.RESERVED_COMPLETE.equals(this.status)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean isTemporarilyReserved(LocalDateTime currentTime, int tempReserveDurationMinutes) {
+        if(Objects.isNull(this.tempReservedAt)) {
+            return false;
+        }
+
+        LocalDateTime tempReserveExpiredAt =
+            this.tempReservedAt.plusMinutes(tempReserveDurationMinutes);
+
+        return tempReserveExpiredAt.isAfter(currentTime); // 임시 배정 상태 만료시간이 현재 시간보다 더 뒤라면
+    }
+
+    public void reserveSeatTemporarily(LocalDateTime currentTime) {
+        this.tempReservedAt = currentTime;
+        this.updatedAt = currentTime;
+    }
 }
