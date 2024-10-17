@@ -1,6 +1,6 @@
 package io.hhplus.concert.interfaces.api.payment;
 
-import io.hhplus.concert.interfaces.api.common.response.ApiResponse;
+import io.hhplus.concert.interfaces.api.common.response.ApiResult;
 import io.hhplus.concert.interfaces.api.payment.PaymentResponse.PaymentResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentController implements PaymentControllerDocs{
 
     @PostMapping("")
-    public ApiResponse<PaymentResult> payment(@RequestBody PaymentRequest.Payment request,
+    public ApiResult<PaymentResult> payment(@RequestBody PaymentRequest.Payment request,
         @RequestHeader("X-QUEUE-TOKEN") String token) {
-        return ApiResponse.OK(
+        return ApiResult.OK(
             PaymentResult.builder()
                 .concertId(1L)
                 .concertTitle("결제된 콘서트 이름")

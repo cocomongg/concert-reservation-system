@@ -1,5 +1,6 @@
 package io.hhplus.concert.domain.payment.model;
 
+import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePayment;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,8 +10,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -42,5 +45,14 @@ public class Payment {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public Payment(CreatePayment command) {
+        this.memberId = command.getMemberId();
+        this.reservationId = command.getReservationId();
+        this.paidAmount = command.getPaidAmount();
+        this.status = command.getStatus();
+        this.paidAt = command.getCurrentTime();
+        this.createdAt = LocalDateTime.now();
+    }
 }
 

@@ -1,29 +1,25 @@
 package io.hhplus.concert.domain.waitingqueue.dto;
 
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.util.StringUtils;
 
 public class WaitingQueueCommand {
 
     @Getter
-    public static class CreateWaitingQueueCommand {
+    @AllArgsConstructor
+    public static class CreateWaitingQueue {
         private final String token;
         private final WaitingQueueStatus status;
         private final LocalDateTime expireAt;
 
-        public CreateWaitingQueueCommand(String token, WaitingQueueStatus status,
-            LocalDateTime expireAt) {
-            if(!StringUtils.hasText(token) || Objects.isNull(status) || Objects.isNull(expireAt)) {
-                throw WaitingQueueException.INVALID_CREATION_INPUT;
-            }
+        public static CreateWaitingQueue createActiveQueue(String token, LocalDateTime expireAt) {
+            return new CreateWaitingQueue(token, WaitingQueueStatus.ACTIVE, expireAt);
+        }
 
-            this.token = token;
-            this.status = status;
-            this.expireAt = expireAt;
+        public static CreateWaitingQueue createWaitingQueue(String token) {
+            return new CreateWaitingQueue(token, WaitingQueueStatus.WAITING, null);
         }
     }
 }

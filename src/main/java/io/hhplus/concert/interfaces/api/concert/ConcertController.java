@@ -1,6 +1,6 @@
 package io.hhplus.concert.interfaces.api.concert;
 
-import io.hhplus.concert.interfaces.api.common.response.ApiResponse;
+import io.hhplus.concert.interfaces.api.common.response.ApiResult;
 import io.hhplus.concert.interfaces.api.concert.ConcertResponse.ConcertItem;
 import io.hhplus.concert.interfaces.api.concert.ConcertResponse.ConcertScheduleItem;
 import io.hhplus.concert.interfaces.api.concert.ConcertResponse.ConcertSeatItem;
@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ConcertController implements ConcertControllerDocs{
 
     @GetMapping("")
-    public ApiResponse<List<ConcertItem>> getConcerts() {
-        return ApiResponse.OK(
+    public ApiResult<List<ConcertItem>> getConcerts() {
+        return ApiResult.OK(
             List.of(ConcertItem.builder()
                 .concertId(1L)
                 .concertTitle("콘서트 제목")
@@ -33,9 +33,9 @@ public class ConcertController implements ConcertControllerDocs{
     }
 
     @GetMapping("/{concertId}/schedules")
-    public ApiResponse<List<ConcertScheduleItem>> getConcertSchedules(@PathVariable Long concertId,
+    public ApiResult<List<ConcertScheduleItem>> getConcertSchedules(@PathVariable Long concertId,
         @RequestHeader("X-QUEUE-TOKEN") String token) {
-        return ApiResponse.OK(List.of(
+        return ApiResult.OK(List.of(
             ConcertScheduleItem.builder()
                 .concertScheduleId(1L)
                 .concertScheduledDate(LocalDate.now())
@@ -52,9 +52,9 @@ public class ConcertController implements ConcertControllerDocs{
     }
 
     @GetMapping("/{concertId}/schedules/{scheduleId}/seats")
-    public ApiResponse<List<ConcertSeatItem>> getConcertSeats(@PathVariable Long concertId,
+    public ApiResult<List<ConcertSeatItem>> getConcertSeats(@PathVariable Long concertId,
         @PathVariable Long scheduleId, @RequestHeader("X-QUEUE-TOKEN") String token) {
-        return ApiResponse.OK(List.of(
+        return ApiResult.OK(List.of(
             ConcertSeatItem.builder()
                 .concertSeatId(1L)
                 .seatNumber(17)
@@ -69,9 +69,9 @@ public class ConcertController implements ConcertControllerDocs{
     }
 
     @PostMapping("/{concertId}/schedules/{scheduleId}/reservation")
-    public ApiResponse<ReserveConcertResult> reserveConcert(@PathVariable Long concertId,
+    public ApiResult<ReserveConcertResult> reserveConcert(@PathVariable Long concertId,
         @PathVariable Long scheduleId, @RequestBody ConcertRequest.ReserveConcert request,
         @RequestHeader("X-QUEUE-TOKEN") String token) {
-        return ApiResponse.OK(new ConcertResponse.ReserveConcertResult(1L, 10_000));
+        return ApiResult.OK(new ConcertResponse.ReserveConcertResult(1L, 10_000));
     }
 }

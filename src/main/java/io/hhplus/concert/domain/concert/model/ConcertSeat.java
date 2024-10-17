@@ -79,4 +79,10 @@ public class ConcertSeat {
         this.tempReservedAt = currentTime;
         this.updatedAt = currentTime;
     }
+
+    public void completeReservation(LocalDateTime currentTime) {
+        this.status = ConcertSeatStatus.RESERVED_COMPLETE;
+        this.reservedAt = currentTime;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

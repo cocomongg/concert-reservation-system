@@ -42,4 +42,77 @@ class WaitingQueueTest {
         }
     }
 
+    @DisplayName("isAvailable() 테스트")
+    @Nested
+    class IsAvailableTest {
+        @DisplayName("활성화 상태가 아니면 false를 반환한다.")
+        @Test
+        void should_ReturnFalse_When_NotActive() {
+            // given
+            WaitingQueue waitingQueue = WaitingQueue.builder()
+                .token("token")
+                .status(WaitingQueueStatus.WAITING)
+                .expireAt(LocalDateTime.now())
+                .build();
+
+            // when
+            boolean result = waitingQueue.isAvailable(LocalDateTime.now());
+
+            // then
+            assertThat(result).isFalse();
+        }
+
+        @DisplayName("활성화 상태고, 만료시간이 지났다면 false를 반환한다.")
+        @Test
+        void should_ReturnFalse_When_ActiveAndExpired() {
+            // given
+            LocalDateTime expireAt = LocalDateTime.now();
+            WaitingQueue waitingQueue = WaitingQueue.builder()
+                .token("token")
+                .status(WaitingQueueStatus.WAITING)
+                .expireAt(expireAt)
+                .build();
+
+            // when
+            boolean result = waitingQueue.isAvailable(expireAt.plusSeconds(1));
+
+            // then
+            assertThat(result).isFalse();
+        }
+
+        @DisplayName("활성화 상태고, 만료시간이 지나지 않았다면 true를 반환한다.")
+        @Test
+        void should_ReturnTrue_When_ActiveAndNotExpired() {
+            // given
+            LocalDateTime expireAt = LocalDateTime.now();
+            WaitingQueue waitingQueue = WaitingQueue.builder()
+                .token("token")
+                .status(WaitingQueueStatus.WAITING)
+                .expireAt(expireAt)
+                .build();
+
+            // when
+            boolean result = waitingQueue.isAvailable(expireAt.minusSeconds(1));
+
+            // then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @DisplayName("expire 함수를 호출하면 WaitingQueue가 만료상태가 된다.")
+    @Test
+    void should_SetExpiredStatus_When_CallExpire() {
+        // given
+        WaitingQueue waitingQueue = WaitingQueue.builder()
+            .token("token")
+            .status(WaitingQueueStatus.ACTIVE)
+            .expireAt(LocalDateTime.now())
+            .build();
+
+        // when
+        waitingQueue.expire();
+
+        // then
+        assertThat(waitingQueue.getStatus()).isEqualTo(WaitingQueueStatus.EXPIRED);
+    }
 }
