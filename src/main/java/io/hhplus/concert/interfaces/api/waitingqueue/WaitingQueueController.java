@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/api/v1/queues")
 @RestController
-public class WaitingWaitingQueueController implements WaitingQueueControllerDocs {
+public class WaitingQueueController implements WaitingQueueControllerDocs {
 
     @GetMapping
     public ApiResult<GetQueue> GetQueue(@RequestHeader("X-QUEUE-TOKEN") String token) {
