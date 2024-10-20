@@ -5,12 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -22,16 +24,16 @@ public class ConcertSchedule {
     private Long id;
 
     @Column(name = "concert_id")
-    private String concertId;
+    private Long concertId;
 
-    @Column(name = "scheduled_date")
-    private LocalDate scheduledDate;
+    @Column(name = "scheduled_at")
+    private LocalDateTime scheduledAt;
 
     @Column(name = "start_at")
-    private LocalDateTime startTime;
+    private LocalDateTime startAt;
 
     @Column(name = "end_at")
-    private LocalDateTime endTime;
+    private LocalDateTime endAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
