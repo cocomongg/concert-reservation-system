@@ -46,6 +46,9 @@ public class ConcertSeat {
     @Column(name = "reserved_at")
     private LocalDateTime reservedAt;
 
+    @Version
+    private Long version;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -78,5 +81,11 @@ public class ConcertSeat {
     public void reserveSeatTemporarily(LocalDateTime currentTime) {
         this.tempReservedAt = currentTime;
         this.updatedAt = currentTime;
+    }
+
+    public void completeReservation(LocalDateTime currentTime) {
+        this.status = ConcertSeatStatus.RESERVED_COMPLETE;
+        this.reservedAt = currentTime;
+        this.updatedAt = LocalDateTime.now();
     }
 }

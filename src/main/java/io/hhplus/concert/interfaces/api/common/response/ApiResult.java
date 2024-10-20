@@ -6,15 +6,15 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public class ApiResponse<T> {
+public class ApiResult<T> {
     private final int status;
     private final T data;
 
-    public static ApiResponse<?> OK() {
-        return new ApiResponse<>(HttpStatus.OK.value(), null);
+    public static ApiResult<?> OK() {
+        return new ApiResult<>(HttpStatus.OK.value(), null);
     }
 
-    public static <T> ApiResponse<T> OK(T data) {
-        return new ApiResponse<>(HttpStatus.OK.value(), data);
+    public static <T> ApiResult<T> OK(T data) {
+        return new ApiResult<>(HttpStatus.OK.value(), data);
     }
 }

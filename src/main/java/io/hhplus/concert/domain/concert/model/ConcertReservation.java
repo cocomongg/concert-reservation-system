@@ -10,10 +10,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -49,5 +51,11 @@ public class ConcertReservation {
         this.status = ConcertReservationStatus.PENDING;
         this.reservedAt = command.getDateTime();
         this.createdAt = LocalDateTime.now();
+    }
+
+    public void completeReservation(LocalDateTime currentTime) {
+        this.status = ConcertReservationStatus.COMPLETED;
+        this.reservedAt = currentTime;
+        this.updatedAt = LocalDateTime.now();
     }
 }
