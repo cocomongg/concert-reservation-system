@@ -18,21 +18,28 @@ public class MemberService {
         return memberRepository.getMember(memberId);
     }
 
-    @Transactional(readOnly = true)
-    public boolean existsMember(Long memberId) {
-        return memberRepository.existsMember(memberId);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<MemberPoint> getOptionalMemberPoint(Long memberId) {
-        return memberRepository.getOptionalMemberPoint(memberId);
-    }
-
     @Transactional
-    public MemberPoint getOrCreateMemberPoint(Long memberId) {
-        Optional<MemberPoint> optionalMemberPoint = this.getOptionalMemberPoint(memberId);
+    public MemberPoint getOrDefaultMemberPoint(Long memberId) {
+        Optional<MemberPoint> optionalMemberPoint =
+            memberRepository.getOptionalMemberPoint(memberId);
 
         return optionalMemberPoint.orElseGet(() ->
             memberRepository.saveMemberPoint(MemberPoint.createDefault(memberId)));
+    }
+
+    @Transactional
+    public MemberPoint usePoint(Long memberId, int amount) {
+        MemberPoint memberPoint = this.getOrDefaultMemberPoint(memberId);
+        memberPoint.usePoint(amount);
+
+        return memberPoint;
+    }
+
+    @Transactional
+    public MemberPoint chargePoint(Long memberId, int amount) {
+        MemberPoint memberPoint = this.getOrDefaultMemberPoint(memberId);
+        memberPoint.chargePoint(amount);
+
+        return memberPoint;
     }
 }

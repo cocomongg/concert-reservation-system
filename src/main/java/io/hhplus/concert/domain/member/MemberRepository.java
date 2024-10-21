@@ -11,6 +11,4 @@ public interface MemberRepository {
     Optional<MemberPoint> getOptionalMemberPoint(Long memberId);
 
     MemberPoint saveMemberPoint(MemberPoint memberPoint);
-
-    boolean existsMember(Long memberId);
 }
