@@ -154,9 +154,9 @@ class WaitingQueueFacadeIntegrationTest {
         }
     }
 
-    @DisplayName("validateWaitingQueueToken() 테스트")
+    @DisplayName("checkTokenActivate() 테스트")
     @Nested
-    class ValidateWaitingQueueTokenTest {
+    class CheckTokenActivateTest {
         @DisplayName("토큰에 해당하는 waitingQueue가 없으면 WaitingQueueException이 발생한다.")
         @Test
         void should_ThrowWaitingQueueException_When_WaitingQueueNotFound () {
@@ -165,7 +165,7 @@ class WaitingQueueFacadeIntegrationTest {
             LocalDateTime now = LocalDateTime.now();
 
             // when, then
-            assertThatThrownBy(() -> waitingQueueFacade.validateWaitingQueueToken(token, now))
+            assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
                 .isInstanceOf(WaitingQueueException.class)
                 .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
@@ -187,7 +187,7 @@ class WaitingQueueFacadeIntegrationTest {
             waitingQueueJpaRepository.save(waitingQueue);
 
             // when, then
-            assertThatThrownBy(() -> waitingQueueFacade.validateWaitingQueueToken(token, now))
+            assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
                 .isInstanceOf(WaitingQueueException.class)
                 .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
         }
@@ -208,7 +208,7 @@ class WaitingQueueFacadeIntegrationTest {
             waitingQueueJpaRepository.save(waitingQueue);
 
             // when, then
-            assertThatThrownBy(() -> waitingQueueFacade.validateWaitingQueueToken(token, now))
+            assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
                 .isInstanceOf(WaitingQueueException.class)
                 .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
         }
@@ -230,7 +230,7 @@ class WaitingQueueFacadeIntegrationTest {
             waitingQueueJpaRepository.save(waitingQueue);
 
             // when, then
-            waitingQueueFacade.validateWaitingQueueToken(token, now);
+            waitingQueueFacade.checkTokenActivate(token, now);
         }
     }
 

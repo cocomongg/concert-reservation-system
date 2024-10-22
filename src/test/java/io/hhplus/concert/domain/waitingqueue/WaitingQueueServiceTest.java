@@ -1,7 +1,9 @@
 package io.hhplus.concert.domain.waitingqueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
@@ -9,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
@@ -79,17 +82,97 @@ class WaitingQueueServiceTest {
         }
     }
 
-    @DisplayName("activateOldestWaitedQueues() 테스트")
+    @DisplayName("checkTokenActivate() 테스트")
     @Nested
-    class ActivateOldestWaitedQueuesTest {
+    class CheckTokenActivateTest {
+        @DisplayName("토큰에 해당하는 대기열이 존재하지 않는다면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_WaitingQueueNotFound() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime currentTime = LocalDateTime.now();
+            CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
+
+            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+                .thenThrow(new WaitingQueueException(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND));
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+        }
+
+        @DisplayName("대기열이 활성화 상태가 아니라면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_WaitingQueueIsNotActive() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime currentTime = LocalDateTime.now();
+            CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
+            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.WAITING,
+                currentTime.plusMinutes(10), LocalDateTime.now(), null);
+
+            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+                .thenReturn(waitingQueue);
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+        }
+
+        @DisplayName("대기열이 만료되었다면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_WaitingQueueIsExpired() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime currentTime = LocalDateTime.now();
+            CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
+            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.ACTIVE,
+                currentTime.minusMinutes(10), LocalDateTime.now(), null);
+
+            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+                .thenReturn(waitingQueue);
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+        }
+
+        @DisplayName("대기열이 활성화 상태이고, 만료되지 않았다면 WaitingQueueException이 발생하지 않는다.")
+        @Test
+        void should_NotThrowWaitingQueueException_When_WaitingQueueIsActive() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime currentTime = LocalDateTime.now();
+            CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
+            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.ACTIVE,
+                currentTime.plusMinutes(10), LocalDateTime.now(), null);
+
+            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+                .thenReturn(waitingQueue);
+
+            // when, then
+            assertThatCode(() -> waitingQueueService.checkTokenActivate(query))
+                .doesNotThrowAnyException();
+        }
+    }
+
+    @DisplayName("activateToken() 테스트")
+    @Nested
+    class ActivateTokenTest {
         @DisplayName("활성화할 인원이 0이라면 아무일도 일어나지 않고, return된다.")
         @Test
         void should_Nothing_When_countToActivateIsZero() {
             // given
-            int countToActivate = 0;
+            int maxActiveCount = 10;
+
+            when(waitingQueueRepository.getActiveCount())
+                .thenReturn(10L);
 
             // when
-            waitingQueueService.activateOldestWaitedQueues(countToActivate);
+            waitingQueueService.activateToken(maxActiveCount);
 
             // then
             verify(waitingQueueRepository, never()).getOldestWaitedQueueIds(anyInt());
@@ -100,10 +183,17 @@ class WaitingQueueServiceTest {
         @Test
         void should_NotCallActivateWaitingQueues_When_WaitingQueueCountEmpty() {
             // given
-            int countToActivate = 10;
+            int maxActiveCount = 10;
+            long activeCount = 5L;
+
+            when(waitingQueueRepository.getActiveCount())
+                .thenReturn(activeCount);
+
+            when(waitingQueueRepository.getOldestWaitedQueueIds(anyInt()))
+                .thenReturn(List.of());
 
             // when
-            waitingQueueService.activateOldestWaitedQueues(countToActivate);
+            waitingQueueService.activateToken(maxActiveCount);
 
             // then
             verify(waitingQueueRepository, times(1)).getOldestWaitedQueueIds(anyInt());
@@ -114,17 +204,25 @@ class WaitingQueueServiceTest {
         @Test
         void should_CallActivateWaitingQueues_When_WaitedQueueExist() {
             // given
-            int countToActivate = 3;
+            int maxActiveCount = 6;
+            long activeCount = 3L;
+            int countToActivate = maxActiveCount - (int) activeCount;
+
+            when(waitingQueueRepository.getActiveCount())
+                .thenReturn(activeCount);
+
             List<Long> waitingQueueIds = List.of(1L, 2L, 3L);
             when(waitingQueueRepository.getOldestWaitedQueueIds(countToActivate))
                 .thenReturn(waitingQueueIds);
 
             // when
-            waitingQueueService.activateOldestWaitedQueues(countToActivate);
+            waitingQueueService.activateToken(maxActiveCount);
 
             // then
-            verify(waitingQueueRepository, times(1)).getOldestWaitedQueueIds(countToActivate);
-            verify(waitingQueueRepository, times(1)).activateWaitingQueues(waitingQueueIds);
+            verify(waitingQueueRepository, times(1))
+                .getOldestWaitedQueueIds(countToActivate);
+            verify(waitingQueueRepository, times(1))
+                .activateWaitingQueues(waitingQueueIds);
         }
     }
 }

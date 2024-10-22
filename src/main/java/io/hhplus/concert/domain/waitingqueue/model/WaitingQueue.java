@@ -1,6 +1,7 @@
 package io.hhplus.concert.domain.waitingqueue.model;
 
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -49,13 +50,19 @@ public class WaitingQueue {
         this.createdAt = LocalDateTime.now();
     }
 
-    public boolean isWaiting() {
-        return WaitingQueueStatus.WAITING.equals(this.status);
+    public void checkNotWaiting() {
+        if(!WaitingQueueStatus.WAITING.equals(this.status)) {
+            throw WaitingQueueException.INVALID_STATE_NOT_WAITING;
+        }
     }
 
-    public boolean isAvailable(LocalDateTime currentTime) {
+    public void checkActivated(LocalDateTime currentTime) {
         boolean isActive = WaitingQueueStatus.ACTIVE.equals(this.status);
-        return isActive && this.expireAt.isAfter(currentTime);
+        boolean isExpired = this.expireAt.isBefore(currentTime);
+
+        if(!isActive || isExpired) {
+            throw WaitingQueueException.INVALID_WAITING_QUEUE;
+        }
     }
 
     public void expire() {
