@@ -15,17 +15,15 @@ public class MemberFacade {
 
     public MemberPointInfo getMemberPoint(Long memberId) {
         Member member = memberService.getMember(memberId);
+        MemberPoint memberPoint = memberService.getOrDefaultMemberPoint(member.getId());
 
-        MemberPoint memberPoint = memberService.getOrCreateMemberPoint(member.getId());
         return new MemberPointInfo(memberPoint);
     }
 
     @Transactional
     public MemberPointInfo chargeMemberPoint(Long memberId, int amount) {
         Member member = memberService.getMember(memberId);
-
-        MemberPoint memberPoint = memberService.getOrCreateMemberPoint(member.getId());
-        memberPoint.chargePoint(amount);
+        MemberPoint memberPoint = memberService.chargePoint(member.getId(), amount);
 
         return new MemberPointInfo(memberPoint);
     }

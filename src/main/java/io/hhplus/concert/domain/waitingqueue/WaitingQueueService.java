@@ -1,8 +1,9 @@
 package io.hhplus.concert.domain.waitingqueue;
 
+import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
 import java.util.List;
@@ -30,13 +31,19 @@ public class WaitingQueueService {
     @Transactional(readOnly = true)
     public WaitingQueueWithOrder getWaitingQueueWithOrder(GetWaitingQueueCommonQuery query) {
         WaitingQueue waitingQueue = this.getWaitingQueue(query);
+        waitingQueue.checkNotWaiting();
 
-        if(!waitingQueue.isWaiting()) {
-            throw WaitingQueueException.INVALID_STATE_NOT_WAITING;
-        }
         Long order = waitingQueueRepository.countWaitingOrder(waitingQueue.getId());
 
         return new WaitingQueueWithOrder(waitingQueue, order);
+    }
+
+    @Transactional(readOnly = true)
+    public void checkTokenActivate(CheckTokenActivate query) {
+        WaitingQueue waitingQueue =
+            this.getWaitingQueue(new GetWaitingQueueCommonQuery(query.getToken()));
+
+        waitingQueue.checkActivated(query.getCurrentTime());
     }
 
     @Transactional(readOnly = true)
@@ -45,13 +52,16 @@ public class WaitingQueueService {
     }
 
     @Transactional
-    public void activateOldestWaitedQueues(int countToActivate) {
+    public void activateToken(int maxActiveCount) {
+        Long activeCount = waitingQueueRepository.getActiveCount();
+        int countToActivate = maxActiveCount - activeCount.intValue();
+
         if(countToActivate <= 0) {
             return;
         }
 
-        List<Long> waitingQueueIds = waitingQueueRepository.getOldestWaitedQueueIds(
-            countToActivate);
+        List<Long> waitingQueueIds =
+            waitingQueueRepository.getOldestWaitedQueueIds(countToActivate);
 
         if(waitingQueueIds.isEmpty()) {
             return;

@@ -1,7 +1,11 @@
 package io.hhplus.concert.domain.waitingqueue.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
+import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,93 +13,79 @@ import org.junit.jupiter.api.Test;
 
 class WaitingQueueTest {
 
-    @DisplayName("isWaiting() 테스트")
+    @DisplayName("checkNotWaiting() 테스트")
     @Nested
-    class IsWaitingTest {
-        @DisplayName("대기상태가 아니라면 false를 반환한다.")
+    class CheckNotWaitingTest {
+        @DisplayName("대기상태가 아니면 WaitingQueueException이 발생한다.")
         @Test
-        void should_ReturnFalse_When_StatusIsNotWaiting() {
+        void should_ThrowWaitingQueueException_When_StatusIsNotWaiting() {
             // given
             WaitingQueueStatus status = WaitingQueueStatus.ACTIVE;
             WaitingQueue waitingQueue = new WaitingQueue(1L, "token", status,
                 LocalDateTime.now(), LocalDateTime.now(), null);
 
-            // when
-            boolean result = waitingQueue.isWaiting();
-
-            // then
-            assertThat(result).isFalse();
+            // when, then
+            assertThatThrownBy(() -> waitingQueue.checkNotWaiting())
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_STATE_NOT_WAITING.getMessage());
         }
 
-        @DisplayName("대기상태면 true를 반환한다.")
+        @DisplayName("대기상태면 예외를 발생시키지 않는다.")
         @Test
-        void should_ReturnTrue_When_StatusIsWaiting() {
+        void should_NotThrowException_When_StatusIsWaiting() {
             WaitingQueueStatus status = WaitingQueueStatus.WAITING;
             WaitingQueue waitingQueue = new WaitingQueue(1L, "token", status,
                 LocalDateTime.now(), LocalDateTime.now(), null);
 
-            // when
-            boolean result = waitingQueue.isWaiting();
-
-            // then
-            assertThat(result).isTrue();
+            // when, then
+            assertThatCode(() -> waitingQueue.checkNotWaiting())
+                .doesNotThrowAnyException();
         }
     }
 
-    @DisplayName("isAvailable() 테스트")
+    @DisplayName("checkActivated() 테스트")
     @Nested
-    class IsAvailableTest {
-        @DisplayName("활성화 상태가 아니면 false를 반환한다.")
+    class CheckActivatedTest {
+        @DisplayName("활성화 상태가 아니면 WaitingQueueException이 발생한다.")
         @Test
-        void should_ReturnFalse_When_NotActive() {
+        void should_ThrowWaitingQueueException_When_StatusIsNotActive() {
             // given
-            WaitingQueue waitingQueue = WaitingQueue.builder()
-                .token("token")
-                .status(WaitingQueueStatus.WAITING)
-                .expireAt(LocalDateTime.now())
-                .build();
+            WaitingQueueStatus status = WaitingQueueStatus.WAITING;
+            WaitingQueue waitingQueue = new WaitingQueue(1L, "token", status,
+                LocalDateTime.now(), LocalDateTime.now(), null);
 
-            // when
-            boolean result = waitingQueue.isAvailable(LocalDateTime.now());
-
-            // then
-            assertThat(result).isFalse();
+            // when, then
+            assertThatThrownBy(() -> waitingQueue.checkActivated(LocalDateTime.now()))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("활성화 상태고, 만료시간이 지났다면 false를 반환한다.")
+        @DisplayName("만료시간이 지났으면 WaitingQueueException이 발생한다.")
         @Test
-        void should_ReturnFalse_When_ActiveAndExpired() {
+        void should_ThrowWaitingQueueException_When_Expired() {
             // given
-            LocalDateTime expireAt = LocalDateTime.now();
-            WaitingQueue waitingQueue = WaitingQueue.builder()
-                .token("token")
-                .status(WaitingQueueStatus.WAITING)
-                .expireAt(expireAt)
-                .build();
+            WaitingQueueStatus status = WaitingQueueStatus.ACTIVE;
+            LocalDateTime currentTime = LocalDateTime.now();
+            WaitingQueue waitingQueue = new WaitingQueue(1L, "token", status,
+                currentTime.minusMinutes(1), LocalDateTime.now(), null);
 
-            // when
-            boolean result = waitingQueue.isAvailable(expireAt.plusSeconds(1));
-
-            // then
-            assertThat(result).isFalse();
+            // when, then
+            assertThatThrownBy(() -> waitingQueue.checkActivated(currentTime))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("활성화 상태고, 만료시간이 지나지 않았다면 true를 반환한다.")
+        @DisplayName("활성화 상태면 예외를 발생시키지 않는다.")
         @Test
-        void should_ReturnTrue_When_ActiveAndNotExpired() {
-            // given
-            LocalDateTime expireAt = LocalDateTime.now();
-            WaitingQueue waitingQueue = WaitingQueue.builder()
-                .token("token")
-                .status(WaitingQueueStatus.WAITING)
-                .expireAt(expireAt)
-                .build();
+        void should_NotThrowException_When_StatusIsActive() {
+            WaitingQueueStatus status = WaitingQueueStatus.ACTIVE;
+            LocalDateTime currentTime = LocalDateTime.now();
+            WaitingQueue waitingQueue = new WaitingQueue(1L, "token", status,
+                currentTime.plusMinutes(1), LocalDateTime.now(), null);
 
-            // when
-            boolean result = waitingQueue.isAvailable(expireAt.minusSeconds(1));
-
-            // then
-            assertThat(result).isFalse();
+            // when, then
+            assertThatCode(() -> waitingQueue.checkActivated(currentTime))
+                .doesNotThrowAnyException();
         }
     }
 

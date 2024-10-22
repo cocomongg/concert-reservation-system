@@ -51,7 +51,7 @@ public class PaymentFacade {
         int priceAmount = concertSeat.getPriceAmount();
         // 포인트 차감
         Long memberId = concertReservation.getMemberId();
-        MemberPoint memberPoint = memberService.getOrCreateMemberPoint(memberId);
+        MemberPoint memberPoint = memberService.getOrDefaultMemberPoint(memberId);
         memberPoint.usePoint(priceAmount);
 
         // 좌석, 예약 정보 업데이트

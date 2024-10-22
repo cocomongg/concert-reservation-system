@@ -1,9 +1,11 @@
 package io.hhplus.concert.domain.waitingqueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
@@ -189,6 +191,74 @@ class WaitingQueueServiceIntegrationTest {
         }
     }
 
+    @DisplayName("checkTokenActivate 테스트")
+    @Nested
+    class CheckTokenActivateTest {
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_NotFound() {
+            // given
+            CheckTokenActivate query = new CheckTokenActivate("token", LocalDateTime.now());
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+        }
+
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 활성화 상태가 아니라면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_StatusIsNotActive() {
+            // given
+            String token = "tokenValue";
+            CheckTokenActivate query = new CheckTokenActivate(token, LocalDateTime.now());
+            WaitingQueue waitingQueue = new WaitingQueue(null, token, WaitingQueueStatus.WAITING,
+                LocalDateTime.now(), LocalDateTime.now(), null);
+
+            waitingQueueJpaRepository.save(waitingQueue);
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+        }
+
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 만료되었으면 WaitingQueueException이 발생한다.")
+        @Test
+        void should_ThrowWaitingQueueException_When_Expired() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime currentTime = LocalDateTime.now();
+            CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
+            WaitingQueue waitingQueue = new WaitingQueue(null, token, WaitingQueueStatus.ACTIVE,
+                currentTime.minusDays(1), LocalDateTime.now(), null);
+
+            waitingQueueJpaRepository.save(waitingQueue);
+
+            // when, then
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
+                .isInstanceOf(WaitingQueueException.class)
+                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+        }
+
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 활성화 상태이고 만료되지 않았으면 WaitingQueueException이 발생하지 않는다.")
+        @Test
+        void should_NotThrowWaitingQueueException_When_ActiveAndNotExpired() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime currentTime = LocalDateTime.now();
+            CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
+            WaitingQueue waitingQueue = new WaitingQueue(null, token, WaitingQueueStatus.ACTIVE,
+                currentTime.plusDays(1), LocalDateTime.now(), null);
+
+            waitingQueueJpaRepository.save(waitingQueue);
+
+            // when, then
+            assertThatCode(() -> waitingQueueService.checkTokenActivate(query))
+                .doesNotThrowAnyException();
+        }
+    }
+
     @DisplayName("getActiveCount 테스트")
     @Nested
     class GetActiveCountTest {
@@ -224,9 +294,9 @@ class WaitingQueueServiceIntegrationTest {
         }
     }
     
-    @DisplayName("activateOldestWaitedQueues 테스트")
+    @DisplayName("activateToken 테스트")
     @Nested
-    class ActivateOldestWaitedQueuesTest {
+    class ActivateTokenTest {
         @DisplayName("활성화 대상 개수가 0이면 아무일도 일어나지 않는다.")
         @Test
         void should_Nothing_When_CountTOActivateIsZero() {
@@ -257,7 +327,7 @@ class WaitingQueueServiceIntegrationTest {
             int countToActivate = 0;
             
             // when
-            waitingQueueService.activateOldestWaitedQueues(countToActivate);
+            waitingQueueService.activateToken(countToActivate + 5);
         
             // then
             List<WaitingQueue> waitingQueues = waitingQueueJpaRepository.findAll();
@@ -297,7 +367,7 @@ class WaitingQueueServiceIntegrationTest {
             int countToActivate = 5;
             
             // when
-            waitingQueueService.activateOldestWaitedQueues(countToActivate);
+            waitingQueueService.activateToken(countToActivate + givenActiveCount);
         
             // then
             List<WaitingQueue> waitingQueues = waitingQueueJpaRepository.findAll();
@@ -343,7 +413,7 @@ class WaitingQueueServiceIntegrationTest {
             int countToActivate = 3;
 
             // when
-            waitingQueueService.activateOldestWaitedQueues(countToActivate);
+            waitingQueueService.activateToken(givenActiveCount + countToActivate);
 
             // then
             List<WaitingQueue> waitingQueues = waitingQueueJpaRepository.findAll();

@@ -2,10 +2,11 @@ package io.hhplus.concert.domain.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 import io.hhplus.concert.domain.member.exception.MemberErrorCode;
 import io.hhplus.concert.domain.member.exception.MemberException;
+import io.hhplus.concert.domain.member.exception.MemberPointErrorCode;
+import io.hhplus.concert.domain.member.exception.MemberPointException;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
 import io.hhplus.concert.infra.db.member.MemberJpaRepository;
@@ -70,46 +71,10 @@ class MemberServiceIntegrationTest {
             assertThat(result.getCreatedAt()).isEqualTo(member.getCreatedAt());
         }
     }
-
-    @DisplayName("getOptionalMemberPoint() 테스트")
-    @Nested
-    class GetOptionalMemberPointTest {
-        @DisplayName("memberId에 해당하는 MemberPoint가 없으면 Optional.empty를 반환한다.")
-        @Test
-        void should_ReturnOptionalEmpty_When_MemberPointNotFound () {
-            // given
-            Long memberId = 0L;
-
-            // when
-            Optional<MemberPoint> optionalMemberPoint = memberService.getOptionalMemberPoint(
-                memberId);
-
-            // then
-            assertThat(optionalMemberPoint).isEmpty();
-        }
-
-        @DisplayName("memberId에 해당하는 MemberPoint가 있으면 Optional<MemberPoint>를 반환한다.")
-        @Test
-        void should_ReturnPre() {
-            // given
-            Long memberId = 1L;
-            MemberPoint memberPoint = new MemberPoint(null, memberId, 100,
-                LocalDateTime.now(), null);
-
-            MemberPoint savedMemberPoint = memberPointJpaRepository.save(memberPoint);
-
-            // when
-            Optional<MemberPoint> optionalMemberPoint = memberService.getOptionalMemberPoint(
-                memberId);
-
-            // then
-            assertThat(optionalMemberPoint).isPresent();
-        }
-    }
     
-    @DisplayName("getOrCreateMemberPoint() 테스트")
+    @DisplayName("getOrDefaultMemberPoint() 테스트")
     @Nested
-    class GetOrCreateMemberPointTest {
+    class GetOrDefaultMemberPointTest {
         @DisplayName("memberId에 해당하는 MemberPoint가 없으면 MemberPoint를 생성하고 반환한다.")
         @Test
         void should_CreateAndReturnMemberPoint_When_NotFound() {
@@ -117,7 +82,7 @@ class MemberServiceIntegrationTest {
             Long memberId = 0L;
             
             // when
-            MemberPoint result = memberService.getOrCreateMemberPoint(memberId);
+            MemberPoint result = memberService.getOrDefaultMemberPoint(memberId);
 
             // then
             assertThat(result.getMemberId()).isEqualTo(memberId);
@@ -131,7 +96,7 @@ class MemberServiceIntegrationTest {
             Long memberId = 0L;
 
             // when
-            MemberPoint result = memberService.getOrCreateMemberPoint(memberId);
+            MemberPoint result = memberService.getOrDefaultMemberPoint(memberId);
 
             // then
             MemberPoint memberPoint = memberPointJpaRepository.findById(result.getId()).orElse(null);
@@ -150,7 +115,7 @@ class MemberServiceIntegrationTest {
                 memberId, 100, LocalDateTime.now(), null));
 
             // when
-            MemberPoint result = memberService.getOrCreateMemberPoint(memberId);
+            MemberPoint result = memberService.getOrDefaultMemberPoint(memberId);
 
             // then
             assertThat(result.getMemberId()).isEqualTo(savedMemberPoint.getMemberId());
@@ -158,35 +123,60 @@ class MemberServiceIntegrationTest {
         }
     }
     
-    @DisplayName("existsMember() 테스트")
+    @DisplayName("usePoint() 테스트")
     @Nested
-    class ExistsMemberTest {
-        @DisplayName("memberId에 해당하는 member가 없으면 false를 반환한다.")
+    class UsePointTest {
+        @DisplayName("포인트가 부족하면 MemberPointException이 발생한다.")
         @Test
-        void should_ReturnFalse_When_MemberNotExists () {
+        void should_ThrowMemberPointException_When_InsufficientPoint() {
             // given
-            Long memberId = 0L;
-            
-            // when
-            boolean result = memberService.existsMember(memberId);
-        
-            // then
-            assertThat(result).isFalse();
+            Long memberId = 1L;
+            int amount = 100;
+            memberPointJpaRepository.save(new MemberPoint(null, memberId, 50,
+                LocalDateTime.now(), null));
+
+            // when, then
+            assertThatThrownBy(() -> memberService.usePoint(memberId, amount))
+                .isInstanceOf(MemberPointException.class)
+                .hasMessage(MemberPointErrorCode.INSUFFICIENT_POINT_AMOUNT.getMessage());
         }
 
-        @DisplayName("memberId에 해당하는 member가 있으면 true를 반환한다.")
+
+
+        @DisplayName("포인트가 충분하면 포인트를 차감 후 MemberPoint를 반환한다.")
         @Test
-        void should_ReturnTrue_When_MemberExists () {
+        void should_ReturnMemberPoint_When_EnoughPoint() {
             // given
-            Member member =
-                new Member(null, "email", "name", LocalDateTime.now(), null);
-            Member savedMember = memberJpaRepository.save(member);
+            Long memberId = 1L;
+            int amount = 100;
+            memberPointJpaRepository.save(new MemberPoint(null, memberId, 150,
+                LocalDateTime.now(), null));
 
             // when
-            boolean result = memberService.existsMember(savedMember.getId());
+            MemberPoint result = memberService.usePoint(memberId, amount);
 
             // then
-            assertThat(result).isTrue();
+            assertThat(result.getPointAmount()).isEqualTo(50);
+        }
+    }
+
+    @DisplayName("chargePoint() 테스트")
+    @Nested
+    class ChargePointTest {
+        @DisplayName("포인트를 충전하고 MemberPoint를 반환한다.")
+        @Test
+        void should_ReturnMemberPoint_When_ChargePoint() {
+            // given
+            Long memberId = 1L;
+            int amount = 100;
+            memberPointJpaRepository.save(new MemberPoint(null, memberId, 50,
+                LocalDateTime.now(), null));
+
+            // when
+            MemberPoint result = memberService.chargePoint(memberId, amount);
+
+            // then
+            assertThat(result.getPointAmount()).isEqualTo(150);
         }
     }
 }
