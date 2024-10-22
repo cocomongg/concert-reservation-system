@@ -21,11 +21,12 @@ import io.hhplus.concert.domain.member.model.Member;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
-@Service
+@Component
 public class ConcertFacade {
 
     private final ConcertService concertService;
