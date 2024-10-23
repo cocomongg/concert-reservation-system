@@ -19,11 +19,13 @@ public class WaitingQueueService {
     @Transactional
     public WaitingQueue createWaitingQueue(CreateWaitingQueue command) {
         Long activeCount = this.getActiveCount();
+
+        WaitingQueue waitingQueue = WaitingQueue.createWaitingQueue(command.getToken());
         if(activeCount < command.getMaxActiveCount()) {
-            return WaitingQueue.createActiveWaitingQueue(command.getToken(), command.getExpireAt());
+            waitingQueue = WaitingQueue.createActiveWaitingQueue(command.getToken(), command.getExpireAt());
         }
 
-        return WaitingQueue.createWaitingQueue(command.getToken());
+        return waitingQueueRepository.saveWaitingQueue(waitingQueue);
     }
 
     @Transactional(readOnly = true)
