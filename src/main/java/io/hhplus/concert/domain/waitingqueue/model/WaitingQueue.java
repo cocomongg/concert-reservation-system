@@ -43,11 +43,21 @@ public class WaitingQueue {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public WaitingQueue(CreateWaitingQueue command) {
-        this.token = command.getToken();
-        this.status = command.getStatus();
-        this.expireAt = command.getExpireAt();
-        this.createdAt = LocalDateTime.now();
+    public static WaitingQueue createActiveWaitingQueue(String token, LocalDateTime expireAt) {
+        return WaitingQueue.builder()
+            .token(token)
+            .status(WaitingQueueStatus.ACTIVE)
+            .expireAt(expireAt)
+            .createdAt(LocalDateTime.now())
+            .build();
+    }
+
+    public static WaitingQueue createWaitingQueue(String token) {
+        return WaitingQueue.builder()
+            .token(token)
+            .status(WaitingQueueStatus.WAITING)
+            .createdAt(LocalDateTime.now())
+            .build();
     }
 
     public void checkNotWaiting() {
@@ -58,9 +68,12 @@ public class WaitingQueue {
 
     public void checkActivated(LocalDateTime currentTime) {
         boolean isActive = WaitingQueueStatus.ACTIVE.equals(this.status);
-        boolean isExpired = this.expireAt.isBefore(currentTime);
+        if(!isActive) {
+            throw WaitingQueueException.INVALID_WAITING_QUEUE;
+        }
 
-        if(!isActive || isExpired) {
+        boolean isExpired = this.expireAt.isBefore(currentTime);
+        if(isExpired) {
             throw WaitingQueueException.INVALID_WAITING_QUEUE;
         }
     }

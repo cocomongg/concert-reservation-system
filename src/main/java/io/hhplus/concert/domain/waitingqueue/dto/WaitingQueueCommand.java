@@ -11,15 +11,7 @@ public class WaitingQueueCommand {
     @AllArgsConstructor
     public static class CreateWaitingQueue {
         private final String token;
-        private final WaitingQueueStatus status;
+        private final int maxActiveCount;
         private final LocalDateTime expireAt;
-
-        public static CreateWaitingQueue createActiveQueue(String token, LocalDateTime expireAt) {
-            return new CreateWaitingQueue(token, WaitingQueueStatus.ACTIVE, expireAt);
-        }
-
-        public static CreateWaitingQueue createWaitingQueue(String token) {
-            return new CreateWaitingQueue(token, WaitingQueueStatus.WAITING, null);
-        }
     }
 }

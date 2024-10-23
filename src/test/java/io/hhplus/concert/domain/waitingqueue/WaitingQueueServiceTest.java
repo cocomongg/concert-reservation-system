@@ -11,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
@@ -36,6 +37,54 @@ class WaitingQueueServiceTest {
 
     @InjectMocks
     private WaitingQueueService waitingQueueService;
+
+    @DisplayName("createWaitingQueue() 테스트")
+    @Nested
+    class CreateWaitingQueueTest {
+        @DisplayName("활성화 대기열 토큰이 최대 활성화 수 보다 적다면 활성화 토큰을 생성한다.")
+        @Test
+        void should_CreateActiveWaitingQueue_When_ActiveCountLessThanMaxActiveCount() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
+            int maxActiveCount = 10;
+            long activeCount = 5L;
+            CreateWaitingQueue command = new CreateWaitingQueue(token, maxActiveCount, expireAt);
+
+            when(waitingQueueRepository.getActiveCount())
+                .thenReturn(activeCount);
+
+            // when
+            WaitingQueue result = waitingQueueService.createWaitingQueue(command);
+
+            // then
+            assertThat(result.getToken()).isEqualTo(token);
+            assertThat(result.getExpireAt()).isEqualTo(expireAt);
+            assertThat(result.getStatus()).isEqualTo(WaitingQueueStatus.ACTIVE);
+        }
+
+        @DisplayName("활성화 대기열이 최대 인원보다 많다면 일반 대기열을 생성한다.")
+        @Test
+        void should_CreateWaitingQueue_When_ActiveCountGreaterThanMaxActiveCount() {
+            // given
+            String token = "tokenValue";
+            LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
+            int maxActiveCount = 10;
+            long activeCount = 15L;
+            CreateWaitingQueue command = new CreateWaitingQueue(token, maxActiveCount, expireAt);
+
+            when(waitingQueueRepository.getActiveCount())
+                .thenReturn(activeCount);
+
+            // when
+            WaitingQueue result = waitingQueueService.createWaitingQueue(command);
+
+            // then
+            assertThat(result.getToken()).isEqualTo(token);
+            assertThat(result.getExpireAt()).isNull();
+            assertThat(result.getStatus()).isEqualTo(WaitingQueueStatus.WAITING);
+        }
+    }
 
     @DisplayName("getWaitingQueueWithOrder() 테스트")
     @Nested

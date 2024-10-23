@@ -41,42 +41,60 @@ class WaitingQueueServiceIntegrationTest {
     @DisplayName("createWaitingQueue 테스트")
     @Nested
     class CreateWaitingQueueTest {
-        @DisplayName("입력된 값들을 통해 waitingQueue객체를 반환한다.")
+        @DisplayName("대기열 토큰의 활성화 상태 개수가 최대 활성화 상태 개수보다 작으면 활성화 상태인 대기열 토큰을 생성한다.")
         @Test
-        void should_ReturnWaitingQueue_When_CommandGiven() {
+        void should_CreateActiveWaitingQueue_When_ActiveCountIsLessThanMaxActiveCount() {
             // given
-            CreateWaitingQueue command = new CreateWaitingQueue("token",
-                WaitingQueueStatus.WAITING, LocalDateTime.now());
+            String token = "token";
+            int maxCount = 10;
+            LocalDateTime expireAt = LocalDateTime.now().plusDays(1);
+            CreateWaitingQueue command = new CreateWaitingQueue(token, maxCount, expireAt);
 
             // when
             WaitingQueue result = waitingQueueService.createWaitingQueue(command);
 
             // then
-            assertThat(result).isNotNull();
-            assertThat(result.getToken()).isEqualTo(command.getToken());
-            assertThat(result.getStatus()).isEqualTo(command.getStatus());
-            assertThat(result.getExpireAt()).isEqualTo(command.getExpireAt());
+            assertThat(result.getToken()).isEqualTo(token);
+            assertThat(result.getStatus()).isEqualTo(WaitingQueueStatus.ACTIVE);
+            assertThat(result.getExpireAt()).isEqualTo(expireAt);
         }
 
-        @DisplayName("입력된 값들을 통해 waitingQueue객체를 저장한다.")
+        @DisplayName("대기열 토큰의 활성화 상태 개수가 최대 활성화 상태 개수보다 크거나 같으면 대기 상태인 대기열 토큰을 생성한다.")
         @Test
-        void should_SaveWaitingQueue_When_CommandGiven() {
+        void should_CreateWaitingQueue_When_ActiveCountIsGreaterThanOrEqualToMaxActiveCount() {
             // given
-            CreateWaitingQueue command = new CreateWaitingQueue("token",
-                WaitingQueueStatus.WAITING, LocalDateTime.now());
+            String token = "token";
+            int maxCount = 3;
+            LocalDateTime expireAt = LocalDateTime.now().plusDays(1);
+            CreateWaitingQueue command = new CreateWaitingQueue(token, maxCount, expireAt);
+
+            WaitingQueue waitingQueue1 = WaitingQueue.builder()
+                .token("token1")
+                .status(WaitingQueueStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+            WaitingQueue waitingQueue2 = WaitingQueue.builder()
+                .token("token2")
+                .status(WaitingQueueStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+            WaitingQueue waitingQueue3 = WaitingQueue.builder()
+                .token("token3")
+                .status(WaitingQueueStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+            waitingQueueJpaRepository.saveAll(List.of(waitingQueue1, waitingQueue2, waitingQueue3));
 
             // when
-            WaitingQueue waitingQueue = waitingQueueService.createWaitingQueue(command);
-            Optional<WaitingQueue> savedWaitingQueueOptional =
-                waitingQueueJpaRepository.findById(waitingQueue.getId());
+            WaitingQueue result = waitingQueueService.createWaitingQueue(command);
 
             // then
-            assertThat(savedWaitingQueueOptional).isPresent();
-
-            WaitingQueue savedWaitingQueue = savedWaitingQueueOptional.get();
-            assertThat(savedWaitingQueue.getToken()).isEqualTo(command.getToken());
-            assertThat(savedWaitingQueue.getStatus()).isEqualTo(command.getStatus());
-            assertThat(savedWaitingQueue.getExpireAt()).isEqualTo(command.getExpireAt());
+            assertThat(result.getToken()).isEqualTo(token);
+            assertThat(result.getStatus()).isEqualTo(WaitingQueueStatus.WAITING);
+            assertThat(result.getExpireAt()).isNull();
         }
     }
 
@@ -100,9 +118,12 @@ class WaitingQueueServiceIntegrationTest {
         void should_ReturnWaitingQueueException_When_Found() {
             // given
             String token = "token";
-            CreateWaitingQueue command = new CreateWaitingQueue(token,
-                WaitingQueueStatus.WAITING, LocalDateTime.now());
-            WaitingQueue givenWaitingQueue = new WaitingQueue(command);
+            WaitingQueue givenWaitingQueue = WaitingQueue.builder()
+                    .token(token)
+                    .status(WaitingQueueStatus.ACTIVE)
+                    .expireAt(LocalDateTime.now())
+                    .build();
+
             waitingQueueJpaRepository.save(givenWaitingQueue);
 
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
