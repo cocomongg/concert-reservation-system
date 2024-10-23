@@ -1,7 +1,7 @@
 package io.hhplus.concert.domain.waitingqueue.model;
 
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -64,19 +64,19 @@ public class WaitingQueue {
 
     public void checkNotWaiting() {
         if(!WaitingQueueStatus.WAITING.equals(this.status)) {
-            throw WaitingQueueException.INVALID_STATE_NOT_WAITING;
+            throw new CoreException(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING);
         }
     }
 
     public void checkActivated(LocalDateTime currentTime) {
         boolean isActive = WaitingQueueStatus.ACTIVE.equals(this.status);
         if(!isActive) {
-            throw WaitingQueueException.INVALID_WAITING_QUEUE;
+            throw new CoreException(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE);
         }
 
         boolean isExpired = this.expireAt.isBefore(currentTime);
         if(isExpired) {
-            throw WaitingQueueException.INVALID_WAITING_QUEUE;
+            throw new CoreException(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE);
         }
     }
 

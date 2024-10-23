@@ -5,7 +5,6 @@ import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.ConcertService;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
-import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.member.MemberService;
@@ -16,6 +15,8 @@ import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
@@ -45,7 +46,7 @@ public class PaymentFacade {
         boolean temporarilyReserved = concertSeat.isTemporarilyReserved(dateTime,
             ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
         if (!temporarilyReserved) {
-            throw ConcertException.TEMPORARY_RESERVATION_EXPIRED;
+            throw new CoreException(CoreErrorType.Concert.TEMPORARY_RESERVATION_EXPIRED);
         }
 
         int priceAmount = concertSeat.getPriceAmount();

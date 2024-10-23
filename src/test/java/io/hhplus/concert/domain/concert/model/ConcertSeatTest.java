@@ -3,7 +3,8 @@ package io.hhplus.concert.domain.concert.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import io.hhplus.concert.domain.concert.exception.ConcertException;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -135,8 +136,8 @@ class ConcertSeatTest {
 
             // when, then
             assertThatThrownBy(() -> concertSeat.reserve(LocalDateTime.now(), 5))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertException.NOT_RESERVABLE_SEAT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.NOT_RESERVABLE_SEAT.getMessage());
         }
 
         @DisplayName("임시예약이 가능한 상태라면 임시예약된다.")
