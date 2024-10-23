@@ -1,10 +1,15 @@
 package io.hhplus.concert.domain.concert;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.hhplus.concert.domain.common.ServicePolicy;
+import io.hhplus.concert.domain.concert.dto.ConcertCommand.ReserveConcertSeat;
+import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSeats;
+import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
 import java.time.LocalDateTime;
@@ -98,6 +103,80 @@ class ConcertServiceTest {
                     reservableSeat1.getSeatNumber(),
                     reservableSeat2.getSeatNumber()
                 );
+        }
+    }
+
+    @DisplayName("reserveConcertSeat() 테스트")
+    @Nested
+    class ReserveConcertSeatTest {
+        @DisplayName("concertSeat이 존재하지 않는다면 ConcertException이 발생한다.")
+        @Test
+        void should_ThrowConcertException_When_ConcertSeatNotExist() {
+            // given
+            long concertSeatId = 1L;
+            LocalDateTime now = LocalDateTime.now();
+
+            when(concertRepository.getConcertSeatWithLock(any(GetConcertSeat.class)))
+                .thenThrow(ConcertException.CONCERT_SEAT_NOT_FOUND);
+
+            ReserveConcertSeat command =
+                new ReserveConcertSeat(concertSeatId, now, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
+
+            // when, then
+            assertThatThrownBy(() -> concertService.reserveConcertSeat(command))
+                .isInstanceOf(ConcertException.class)
+                .hasMessage(ConcertException.CONCERT_SEAT_NOT_FOUND.getMessage());
+        }
+
+        @DisplayName("concertSeat이 예약 불가능한 상태라면 ConcertException이 발생한다.")
+        @Test
+        void should_ThrowConcertException_When_NotReservable() {
+            // given
+            long concertSeatId = 1L;
+            LocalDateTime now = LocalDateTime.now();
+
+            ConcertSeat concertSeat = ConcertSeat.builder()
+                .status(ConcertSeatStatus.RESERVED_COMPLETE)
+                .build();
+
+            when(concertRepository.getConcertSeatWithLock(any(GetConcertSeat.class)))
+                .thenReturn(concertSeat);
+
+            ReserveConcertSeat command =
+                new ReserveConcertSeat(concertSeatId, now, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
+
+            // when, then
+            assertThatThrownBy(() -> concertService.reserveConcertSeat(command))
+                .isInstanceOf(ConcertException.class)
+                .hasMessage(ConcertException.NOT_RESERVABLE_SEAT.getMessage());
+        }
+
+        @DisplayName("concertSeat이 예약 가능한 상태라면 예약한다.")
+        @Test
+        void should_ReserveConcertSeat_When_IsReservable() {
+            // given
+            int tempReserveDurationMinutes = ServicePolicy.TEMP_RESERVE_DURATION_MINUTES;
+            long concertSeatId = 1L;
+            LocalDateTime now = LocalDateTime.now();
+
+            ConcertSeat concertSeat = ConcertSeat.builder()
+                .status(ConcertSeatStatus.AVAILABLE)
+                .build();
+
+            when(concertRepository.getConcertSeatWithLock(any(GetConcertSeat.class)))
+                .thenReturn(concertSeat);
+
+            ReserveConcertSeat command =
+                new ReserveConcertSeat(concertSeatId, now, tempReserveDurationMinutes);
+
+            // when
+            ConcertSeat result = concertService.reserveConcertSeat(command);
+
+            // then
+            boolean temporarilyReserved =
+                result.isTemporarilyReserved(LocalDateTime.now(), tempReserveDurationMinutes);
+            assertThat(temporarilyReserved).isTrue();
+            assertThat(result.getTempReservedAt()).isNotNull();
         }
     }
 }

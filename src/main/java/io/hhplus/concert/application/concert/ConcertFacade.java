@@ -6,12 +6,11 @@ import io.hhplus.concert.application.concert.ConcertDto.ConcertSeatInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.ConcertService;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.CreateConcertReservation;
+import io.hhplus.concert.domain.concert.dto.ConcertCommand.ReserveConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcert;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
-import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSchedules;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSeats;
-import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.Concert;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertSchedule;
@@ -22,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
@@ -60,17 +58,10 @@ public class ConcertFacade {
     public ConcertReservationInfo reserveConcertSeat(Long concertSeatId, Long memberId, LocalDateTime dateTime) {
         Member member = memberService.getMember(memberId);
 
-        ConcertSeat concertSeat =
-            concertService.getConcertSeatWithLock(new GetConcertSeat(concertSeatId));
+        ReserveConcertSeat reserveCommand =
+            new ReserveConcertSeat(concertSeatId, dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
 
-        boolean isReservableSeat =
-            concertSeat.isReservable(dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
-
-        if (!isReservableSeat) {
-            throw ConcertException.NOT_RESERVABLE_SEAT;
-        }
-
-        concertSeat.reserveSeatTemporarily(dateTime);
+        ConcertSeat concertSeat = concertService.reserveConcertSeat(reserveCommand);
         ConcertReservation concertReservation = concertService.createConcertReservation(
             new CreateConcertReservation(member.getId(), concertSeat.getId(), dateTime));
 

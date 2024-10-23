@@ -13,4 +13,12 @@ public class ConcertCommand {
         private final long concertSeatId;
         private final LocalDateTime dateTime;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ReserveConcertSeat {
+        private final long concertSeatId;
+        private final LocalDateTime currentTime;
+        private final int tempReserveDurationMinutes;
+    }
 }

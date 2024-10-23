@@ -1,7 +1,9 @@
 package io.hhplus.concert.domain.concert.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import io.hhplus.concert.domain.concert.exception.ConcertException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -117,6 +119,44 @@ class ConcertSeatTest {
 
             // then
             assertThat(result).isFalse();
+        }
+    }
+
+    @DisplayName("reserve()를 호출하면 임시예약된다.")
+    @Nested
+    class ReserveTest {
+        @DisplayName("임시예약이 불가능한 상태라면 ConcertException이 발생한다.")
+        @Test
+        void should_ThrowConcertException_When_NotReservable () {
+            // given
+            ConcertSeat concertSeat = ConcertSeat.builder()
+                .status(ConcertSeatStatus.RESERVED_COMPLETE)
+                .build();
+
+            // when, then
+            assertThatThrownBy(() -> concertSeat.reserve(LocalDateTime.now(), 5))
+                .isInstanceOf(ConcertException.class)
+                .hasMessage(ConcertException.NOT_RESERVABLE_SEAT.getMessage());
+        }
+
+        @DisplayName("임시예약이 가능한 상태라면 임시예약된다.")
+        @Test
+        void should_ReserveTemporarily_When_Reservable () {
+            // given
+            LocalDateTime currentTime = LocalDateTime.now();
+            int tempReserveDurationMinutes = 5;
+
+            ConcertSeat concertSeat = ConcertSeat.builder()
+                .status(ConcertSeatStatus.AVAILABLE)
+                .build();
+
+            // when
+            concertSeat.reserve(currentTime, tempReserveDurationMinutes);
+
+            // then
+            boolean temporarilyReserved =
+                concertSeat.isTemporarilyReserved(LocalDateTime.now(), tempReserveDurationMinutes);
+            assertThat(temporarilyReserved).isTrue();
         }
     }
 
