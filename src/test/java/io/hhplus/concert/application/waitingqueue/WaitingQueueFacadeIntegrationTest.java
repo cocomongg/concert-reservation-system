@@ -11,6 +11,7 @@ import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
+import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class WaitingQueueFacadeIntegrationTest {
 
@@ -30,9 +33,12 @@ class WaitingQueueFacadeIntegrationTest {
     @Autowired
     private WaitingQueueFacade waitingQueueFacade;
 
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
     @AfterEach
-    public void tearDown() {
-        waitingQueueJpaRepository.deleteAllInBatch();
+    public void teardown() {
+        databaseCleanUp.execute();
     }
 
     @DisplayName("generateWaitingQueueToken() 테스트")

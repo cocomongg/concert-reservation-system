@@ -10,6 +10,7 @@ import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
 import io.hhplus.concert.infra.db.member.MemberJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
+import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class MemberFacadeTest {
 
@@ -30,10 +33,12 @@ class MemberFacadeTest {
     @Autowired
     private MemberFacade memberFacade;
 
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
     @AfterEach
-    public void tearDown() {
-        memberPointJpaRepository.deleteAllInBatch();
-        memberJpaRepository.deleteAllInBatch();
+    public void teardown() {
+        databaseCleanUp.execute();
     }
 
     @DisplayName("getMemberPoint()")

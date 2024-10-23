@@ -24,6 +24,7 @@ import io.hhplus.concert.infra.db.concert.ConcertJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertReservationJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertScheduleJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertSeatJpaRepository;
+import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +33,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class ConcertServiceIntegrationTest {
 
@@ -51,12 +54,12 @@ class ConcertServiceIntegrationTest {
     @Autowired
     private ConcertService concertService;
 
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
     @AfterEach
     public void teardown() {
-        concertJpaRepository.deleteAllInBatch();
-        concertScheduleJpaRepository.deleteAllInBatch();
-        concertSeatJpaRepository.deleteAllInBatch();
-        concertReservationJpaRepository.deleteAllInBatch();
+        databaseCleanUp.execute();
     }
 
     @DisplayName("getConcertSeat() 테스트")

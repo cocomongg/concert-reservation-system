@@ -13,6 +13,7 @@ import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
 import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
+import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class WaitingQueueServiceIntegrationTest {
 
@@ -33,9 +36,12 @@ class WaitingQueueServiceIntegrationTest {
     @Autowired
     private WaitingQueueService waitingQueueService;
 
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
     @AfterEach
     public void teardown() {
-        waitingQueueJpaRepository.deleteAllInBatch();
+        databaseCleanUp.execute();
     }
 
     @DisplayName("createWaitingQueue 테스트")

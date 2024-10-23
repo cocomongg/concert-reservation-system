@@ -22,6 +22,7 @@ import io.hhplus.concert.infra.db.concert.ConcertSeatJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
 import io.hhplus.concert.infra.db.payment.PaymentJpaRepository;
 import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
+import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +30,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class PaymentFacadeIntegrationTest {
 
@@ -51,13 +54,12 @@ class PaymentFacadeIntegrationTest {
     @Autowired
     private ConcertReservationJpaRepository concertReservationJpaRepository;
 
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
     @AfterEach
-    void tearDown() {
-        paymentJpaRepository.deleteAllInBatch();
-        memberPointJpaRepository.deleteAllInBatch();
-        waitingQueueJpaRepository.deleteAllInBatch();
-        concertSeatJpaRepository.deleteAllInBatch();
-        concertReservationJpaRepository.deleteAllInBatch();
+    public void teardown() {
+        databaseCleanUp.execute();
     }
 
     @DisplayName("payment() 테스트")
