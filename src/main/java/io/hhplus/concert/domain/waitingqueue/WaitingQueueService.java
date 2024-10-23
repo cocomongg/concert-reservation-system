@@ -1,6 +1,5 @@
 package io.hhplus.concert.domain.waitingqueue;
 
-import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
@@ -19,8 +18,12 @@ public class WaitingQueueService {
 
     @Transactional
     public WaitingQueue createWaitingQueue(CreateWaitingQueue command) {
-        WaitingQueue waitingQueue = new WaitingQueue(command);
-        return waitingQueueRepository.saveWaitingQueue(waitingQueue);
+        Long activeCount = this.getActiveCount();
+        if(activeCount < command.getMaxActiveCount()) {
+            return WaitingQueue.createActiveWaitingQueue(command.getToken(), command.getExpireAt());
+        }
+
+        return WaitingQueue.createWaitingQueue(command.getToken());
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +56,7 @@ public class WaitingQueueService {
 
     @Transactional
     public void activateToken(int maxActiveCount) {
-        Long activeCount = waitingQueueRepository.getActiveCount();
+        Long activeCount = this.getActiveCount();
         int countToActivate = maxActiveCount - activeCount.intValue();
 
         if(countToActivate <= 0) {

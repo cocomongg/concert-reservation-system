@@ -10,6 +10,7 @@ import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
 import io.hhplus.concert.infra.db.payment.PaymentHistoryJpaRepository;
 import io.hhplus.concert.infra.db.payment.PaymentJpaRepository;
+import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class PaymentServiceIntegrationTest {
 
@@ -30,10 +33,12 @@ class PaymentServiceIntegrationTest {
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
     @AfterEach
     public void teardown() {
-        paymentJpaRepository.deleteAllInBatch();
-        paymentHistoryJpaRepository.deleteAllInBatch();
+        databaseCleanUp.execute();
     }
 
     @DisplayName("createPayment() 테스트")

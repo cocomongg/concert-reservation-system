@@ -2,6 +2,7 @@ package io.hhplus.concert.domain.concert;
 
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.CreateConcertReservation;
+import io.hhplus.concert.domain.concert.dto.ConcertCommand.ReserveConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcert;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
@@ -67,5 +68,15 @@ public class ConcertService {
     @Transactional(readOnly = true)
     public ConcertReservation getConcertReservation(GetConcertReservation query) {
         return concertRepository.getConcertReservation(query);
+    }
+
+    @Transactional
+    public ConcertSeat reserveConcertSeat(ReserveConcertSeat command) {
+        ConcertSeat concertSeat =
+            this.getConcertSeatWithLock(new GetConcertSeat(command.getConcertSeatId()));
+
+        concertSeat.reserve(command.getCurrentTime(), command.getTempReserveDurationMinutes());
+
+        return concertSeat;
     }
 }

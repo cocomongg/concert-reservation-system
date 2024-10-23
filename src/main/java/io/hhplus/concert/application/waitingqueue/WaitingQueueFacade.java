@@ -23,16 +23,11 @@ public class WaitingQueueFacade {
 
     public WaitingQueueInfo generateWaitingQueueToken() {
         String token = waitingQueueTokenGenerator.generateWaitingQueueToken();
+        LocalDateTime expireAt = LocalDateTime.now()
+            .plusMinutes(ServicePolicy.WAITING_QUEUE_EXPIRED_MINUTES);
 
-        CreateWaitingQueue command = CreateWaitingQueue.createWaitingQueue(token);
-
-        Long activeCount = waitingQueueService.getActiveCount();
-        if(activeCount < ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT) {
-            LocalDateTime expireAt = LocalDateTime.now()
-                .plusMinutes(ServicePolicy.WAITING_QUEUE_EXPIRED_MINUTES);
-
-            command = CreateWaitingQueue.createActiveQueue(token, expireAt);
-        }
+        CreateWaitingQueue command =
+            new CreateWaitingQueue(token, ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT, expireAt);
 
         WaitingQueue waitingQueue = waitingQueueService.createWaitingQueue(command);
         return new WaitingQueueInfo(waitingQueue);

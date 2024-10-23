@@ -1,5 +1,6 @@
 package io.hhplus.concert.domain.concert.model;
 
+import io.hhplus.concert.domain.concert.exception.ConcertException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -7,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -19,6 +21,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "concert_seat")
 @Entity
 public class ConcertSeat {
 
@@ -78,9 +81,13 @@ public class ConcertSeat {
         return tempReserveExpiredAt.isAfter(currentTime); // 임시 배정 상태 만료시간이 현재 시간보다 더 뒤라면
     }
 
-    public void reserveSeatTemporarily(LocalDateTime currentTime) {
+    public void reserve(LocalDateTime currentTime, int tempReserveDurationMinutes) {
+        if (!this.isReservable(currentTime, tempReserveDurationMinutes)) {
+            throw ConcertException.NOT_RESERVABLE_SEAT;
+        }
+
         this.tempReservedAt = currentTime;
-        this.updatedAt = currentTime;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void completeReservation(LocalDateTime currentTime) {
