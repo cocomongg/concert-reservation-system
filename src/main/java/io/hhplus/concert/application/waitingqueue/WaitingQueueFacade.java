@@ -48,7 +48,11 @@ public class WaitingQueueFacade {
     }
 
     //todo: call by activate scheduler
-    public void activateOldestWaitedQueues() {
-        waitingQueueService.activateToken(ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT);
+    public int activateOldestWaitedQueues() {
+        return waitingQueueService.activateToken(ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT);
+    }
+
+    public int expireWaitingQueues(LocalDateTime currentTime) {
+        return waitingQueueService.expireTokens(currentTime);
     }
 }
