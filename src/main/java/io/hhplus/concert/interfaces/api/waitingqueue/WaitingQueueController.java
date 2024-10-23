@@ -24,7 +24,7 @@ public class WaitingQueueController implements WaitingQueueControllerDocs {
 
     private final WaitingQueueFacade waitingQueueFacade;
 
-    @GetMapping
+    @GetMapping("/tokens/order-info")
     public ApiResult<GetQueue> GetQueue(@RequestHeader("X-QUEUE-TOKEN") String token) {
         WaitingQueueWithOrderInfo waitingQueueWithOrder =
             waitingQueueFacade.getWaitingQueueWithOrder(token);
@@ -33,7 +33,7 @@ public class WaitingQueueController implements WaitingQueueControllerDocs {
         return ApiResult.OK(response);
     }
 
-    @PostMapping("/token")
+    @PostMapping("/tokens")
     public ApiResult<CreateQueueToken> createQueue(@RequestBody CreateQueue request) {
         WaitingQueueInfo waitingQueueWithOrder =
             waitingQueueFacade.generateWaitingQueueToken();

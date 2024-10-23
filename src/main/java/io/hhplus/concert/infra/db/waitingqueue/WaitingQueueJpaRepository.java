@@ -23,6 +23,9 @@ public interface WaitingQueueJpaRepository extends JpaRepository<WaitingQueue, L
     @Query("SELECT wq.id FROM WaitingQueue wq WHERE wq.status = :status ORDER BY wq.id ASC")
     List<Long> findOldestWaitedIds(WaitingQueueStatus status, Pageable pageable);
 
+    @Query("SELECT wq.id FROM WaitingQueue wq WHERE wq.status = 'ACTIVE' and wq.expireAt < :now")
+    List<Long> findExpireTargetIds(LocalDateTime now);
+
     @Modifying
     @Query("UPDATE WaitingQueue wq SET wq.status = :status, wq.updatedAt = :now WHERE wq.id IN :ids")
     int updateStatusByIds(List<Long> ids, WaitingQueueStatus status, LocalDateTime now);

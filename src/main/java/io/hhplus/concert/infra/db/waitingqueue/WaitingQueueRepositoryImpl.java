@@ -46,8 +46,19 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     }
 
     @Override
+    public List<Long> getExpireTargetIds(LocalDateTime currentTime) {
+        return waitingQueueJpaRepository.findExpireTargetIds(currentTime);
+    }
+
+    @Override
     public int activateWaitingQueues(List<Long> ids) {
         return waitingQueueJpaRepository.updateStatusByIds(ids, WaitingQueueStatus.ACTIVE,
+            LocalDateTime.now());
+    }
+
+    @Override
+    public int expireWaitingQueues(List<Long> ids) {
+        return waitingQueueJpaRepository.updateStatusByIds(ids, WaitingQueueStatus.EXPIRED,
             LocalDateTime.now());
     }
 }
