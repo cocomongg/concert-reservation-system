@@ -6,8 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertScheduleInfo;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertSeatInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
-import io.hhplus.concert.domain.concert.exception.ConcertErrorCode;
-import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.Concert;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
@@ -17,6 +15,8 @@ import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
 import io.hhplus.concert.domain.member.exception.MemberErrorCode;
 import io.hhplus.concert.domain.member.exception.MemberException;
 import io.hhplus.concert.domain.member.model.Member;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.infra.db.concert.ConcertJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertReservationJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertScheduleJpaRepository;
@@ -77,8 +77,8 @@ class ConcertFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> concertFacade.getReservableConcertSchedules(concertId, LocalDateTime.now()))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_NOT_FOUND.getMessage());
         }
 
         @DisplayName("입력된 날짜 이후로 예약 가능한 콘서트 일정이 없으면 빈 리스트가 반환된다.")
@@ -179,8 +179,8 @@ class ConcertFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> concertFacade.getReservableConcertSeats(concertScheduleId, LocalDateTime.now()))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_SCHEDULE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_SCHEDULE_NOT_FOUND.getMessage());
         }
 
         @DisplayName("입력된 날짜 이후로 예약 가능한 콘서트 좌석이 없으면 빈 리스트가 반환된다.")
@@ -307,8 +307,8 @@ class ConcertFacadeIntegrationTest {
             // when, then
             assertThatThrownBy(
                 () -> concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_SEAT_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_SEAT_NOT_FOUND.getMessage());
         }
 
         @DisplayName("이미 예약이 완료된 좌석이라면 ConcertException이 발생한다.")
@@ -333,8 +333,8 @@ class ConcertFacadeIntegrationTest {
             // when, then
             assertThatThrownBy(
                 () -> concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.NOT_RESERVABLE_SEAT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.NOT_RESERVABLE_SEAT.getMessage());
         }
 
         @DisplayName("임시 예약된 좌석이라면 ConcertException이 발생한다.")
@@ -360,8 +360,8 @@ class ConcertFacadeIntegrationTest {
             // when, then
             assertThatThrownBy(
                 () -> concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.NOT_RESERVABLE_SEAT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.NOT_RESERVABLE_SEAT.getMessage());
         }
 
         @DisplayName("예약이 완료되면 ConcertReservationInfo를 반환한다.")
