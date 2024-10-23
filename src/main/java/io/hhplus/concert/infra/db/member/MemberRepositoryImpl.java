@@ -1,9 +1,10 @@
 package io.hhplus.concert.infra.db.member;
 
 import io.hhplus.concert.domain.member.MemberRepository;
-import io.hhplus.concert.domain.member.exception.MemberException;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -18,7 +19,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public Member getMember(Long memberId) {
         return memberJpaRepository.findById(memberId)
-            .orElseThrow(() -> MemberException.MEMBER_NOT_FOUND);
+            .orElseThrow(() -> new CoreException(CoreErrorType.Member.MEMBER_NOT_FOUND));
     }
 
     @Override

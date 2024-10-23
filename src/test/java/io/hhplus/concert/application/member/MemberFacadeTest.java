@@ -2,12 +2,11 @@ package io.hhplus.concert.application.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
-import io.hhplus.concert.domain.member.exception.MemberErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberException;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.infra.db.member.MemberJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
@@ -44,16 +43,16 @@ class MemberFacadeTest {
     @DisplayName("getMemberPoint()")
     @Nested
     class GetMemberPoint {
-        @DisplayName("memberId에 해당하는 Member가 없으면 MemberException이 발생한다.")
+        @DisplayName("memberId에 해당하는 Member가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberException_WhenMemberNotFound() {
+        void should_ThrowCoreException_WhenMemberNotFound() {
             // given
             Long memberId = 0L;
 
             // when, then
             assertThatThrownBy(() -> memberFacade.getMemberPoint(memberId))
-                .isInstanceOf(MemberException.class)
-                .hasMessage(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.MEMBER_NOT_FOUND.getMessage());
         }
 
         @DisplayName("memberId에 해당하는 MemberPoint가 없으면 MemberPoint를 생성한다.")
@@ -109,17 +108,17 @@ class MemberFacadeTest {
     @Nested
     class ChargeMemberPoint {
 
-        @DisplayName("memberId에 해당하는 Member가 없으면 MemberException이 발생한다.")
+        @DisplayName("memberId에 해당하는 Member가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberException_WhenMemberNotFound() {
+        void should_ThrowCoreException_WhenMemberNotFound() {
             // given
             Long memberId = 0L;
             int amount = 100;
 
             // when, then
             assertThatThrownBy(() -> memberFacade.chargeMemberPoint(memberId, amount))
-                .isInstanceOf(MemberException.class)
-                .hasMessage(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.MEMBER_NOT_FOUND.getMessage());
         }
 
         @DisplayName("memberId에 해당하는 MemberPoint가 없으면 MemberPoint를 생성하고 point를 충전한다.")

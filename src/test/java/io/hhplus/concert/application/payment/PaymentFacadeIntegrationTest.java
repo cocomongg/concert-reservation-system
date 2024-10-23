@@ -9,8 +9,6 @@ import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
-import io.hhplus.concert.domain.member.exception.MemberPointErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberPointException;
 import io.hhplus.concert.domain.member.model.MemberPoint;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
@@ -134,9 +132,9 @@ class PaymentFacadeIntegrationTest {
                 .hasMessage(CoreErrorType.Concert.TEMPORARY_RESERVATION_EXPIRED.getMessage());
         }
 
-        @DisplayName("포인트 잔액이 부족하면 MemberException이 발생한다.")
+        @DisplayName("포인트 잔액이 부족하면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberPointException_When_PointIsNotEnough() {
+        void should_ThrowCorePointException_When_PointIsNotEnough() {
             // given
             Long memberId = 1L;
             String token = "token";
@@ -167,8 +165,8 @@ class PaymentFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> paymentFacade.payment(reservationId, token, dateTime))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointErrorCode.INSUFFICIENT_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INSUFFICIENT_POINT_AMOUNT.getMessage());
         }
 
         @DisplayName("결제가 정상적으로 이뤄지면 포인트가 ConcertSeat의 가격만큼 차감된다.")

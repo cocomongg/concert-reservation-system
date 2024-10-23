@@ -12,8 +12,6 @@ import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
 import io.hhplus.concert.domain.concert.model.ConcertSchedule;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
-import io.hhplus.concert.domain.member.exception.MemberErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberException;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.support.error.CoreErrorType;
 import io.hhplus.concert.domain.support.error.CoreException;
@@ -279,9 +277,9 @@ class ConcertFacadeIntegrationTest {
     @DisplayName("reserveConcertSeat() 테스트")
     @Nested
     class ReserveConcertSeatTest {
-        @DisplayName("memberId에 해당하는 Member가 없다면 MemberException이 발생한다.")
+        @DisplayName("memberId에 해당하는 Member가 없다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberException_When_MemberNotFound() {
+        void should_ThrowCoreException_When_MemberNotFound() {
             // given
             long concertSeatId = 1L;
             long memberId = 0L;
@@ -290,8 +288,8 @@ class ConcertFacadeIntegrationTest {
             // when, then
             assertThatThrownBy(
                 () -> concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime))
-                .isInstanceOf(MemberException.class)
-                .hasMessage(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.MEMBER_NOT_FOUND.getMessage());
         }
 
         @DisplayName("concertSeatId에 해당하는 ConcertSeat이 없다면 ConcertException이 발생한다.")

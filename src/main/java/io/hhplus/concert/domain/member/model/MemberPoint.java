@@ -1,6 +1,7 @@
 package io.hhplus.concert.domain.member.model;
 
-import io.hhplus.concert.domain.member.exception.MemberPointException;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -52,7 +53,7 @@ public class MemberPoint {
         this.validateAmount(amount);
 
         if(this.pointAmount < amount) {
-            throw MemberPointException.INSUFFICIENT_POINT_AMOUNT;
+            throw new CoreException(CoreErrorType.Member.INSUFFICIENT_POINT_AMOUNT);
         }
 
         this.pointAmount -= amount;
@@ -61,7 +62,7 @@ public class MemberPoint {
 
     public void validateAmount(int amount) {
         if(amount <= 0) {
-            throw MemberPointException.INVALID_POINT_AMOUNT;
+            throw new CoreException(CoreErrorType.Member.INVALID_POINT_AMOUNT);
         }
     }
 }
