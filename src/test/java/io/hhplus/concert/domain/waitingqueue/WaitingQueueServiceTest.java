@@ -11,11 +11,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
@@ -89,9 +89,9 @@ class WaitingQueueServiceTest {
     @DisplayName("getWaitingQueueWithOrder() 테스트")
     @Nested
     class GetWaitingQueueWithOrderTest {
-        @DisplayName("조회 조건에 해당하는 waitingQueue가 대기 상태가 아니라면 WaitingQueueException이 발생한다.")
+        @DisplayName("조회 조건에 해당하는 waitingQueue가 대기 상태가 아니라면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_StatusIsNotWaiting() {
+        void should_ThrowCoreException_When_StatusIsNotWaiting() {
             // given
             String token = "tokenValue";
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
@@ -103,8 +103,8 @@ class WaitingQueueServiceTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.getWaitingQueueWithOrder(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_STATE_NOT_WAITING.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING.getMessage());
         }
         
         @DisplayName("조회 조건에 해당하는 waitingQueue와 대기순번을 조회하여 반환한다.")
@@ -134,26 +134,26 @@ class WaitingQueueServiceTest {
     @DisplayName("checkTokenActivate() 테스트")
     @Nested
     class CheckTokenActivateTest {
-        @DisplayName("토큰에 해당하는 대기열이 존재하지 않는다면 WaitingQueueException이 발생한다.")
+        @DisplayName("토큰에 해당하는 대기열이 존재하지 않는다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_WaitingQueueNotFound() {
+        void should_ThrowCoreException_When_WaitingQueueNotFound() {
             // given
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();
             CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
 
             when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
-                .thenThrow(new WaitingQueueException(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND));
+                .thenThrow(new CoreException(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND));
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("대기열이 활성화 상태가 아니라면 WaitingQueueException이 발생한다.")
+        @DisplayName("대기열이 활성화 상태가 아니라면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_WaitingQueueIsNotActive() {
+        void should_ThrowCoreException_When_WaitingQueueIsNotActive() {
             // given
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();
@@ -166,13 +166,13 @@ class WaitingQueueServiceTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("대기열이 만료되었다면 WaitingQueueException이 발생한다.")
+        @DisplayName("대기열이 만료되었다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_WaitingQueueIsExpired() {
+        void should_ThrowCoreException_When_WaitingQueueIsExpired() {
             // given
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();
@@ -185,13 +185,13 @@ class WaitingQueueServiceTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("대기열이 활성화 상태이고, 만료되지 않았다면 WaitingQueueException이 발생하지 않는다.")
+        @DisplayName("대기열이 활성화 상태이고, 만료되지 않았다면 CoreException이 발생하지 않는다.")
         @Test
-        void should_NotThrowWaitingQueueException_When_WaitingQueueIsActive() {
+        void should_NotThrowCoreException_When_WaitingQueueIsActive() {
             // given
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();

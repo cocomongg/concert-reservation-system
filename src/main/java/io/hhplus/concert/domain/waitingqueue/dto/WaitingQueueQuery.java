@@ -1,6 +1,5 @@
 package io.hhplus.concert.domain.waitingqueue.dto;
 
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.Getter;
@@ -14,7 +13,7 @@ public class WaitingQueueQuery {
 
         public GetWaitingQueueCommonQuery(String token) {
             if(!StringUtils.hasText(token)) {
-                throw WaitingQueueException.INVALID_RETRIEVAL_INPUT;
+                throw new IllegalArgumentException("Invalid input data for GetWaitingQueueCommonQuery.");
             }
 
             this.token = token;
@@ -28,7 +27,7 @@ public class WaitingQueueQuery {
 
         public CheckTokenActivate(String token, LocalDateTime currentTime) {
             if(!StringUtils.hasText(token) || Objects.isNull(currentTime)) {
-                throw WaitingQueueException.INVALID_RETRIEVAL_INPUT;
+                throw new IllegalArgumentException("Invalid input data for CheckTokenActivate.");
             }
 
             this.token = token;

@@ -3,17 +3,14 @@ package io.hhplus.concert.domain.member;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.hhplus.concert.domain.member.exception.MemberErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberException;
-import io.hhplus.concert.domain.member.exception.MemberPointErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberPointException;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.infra.db.member.MemberJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,16 +44,16 @@ class MemberServiceIntegrationTest {
     @DisplayName("getMember() 테스트")
     @Nested
     class GetMemberTest {
-        @DisplayName("memberId에 해당하는 member가 없으면 MemberException이 발생한다.")
+        @DisplayName("memberId에 해당하는 member가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberException_When_MemberNotFound() {
+        void should_ThrowCoreException_When_MemberNotFound() {
             // given
             Long memberId = 0L;
 
             // when, then
             assertThatThrownBy(() -> memberService.getMember(memberId))
-                .isInstanceOf(MemberException.class)
-                .hasMessage(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.MEMBER_NOT_FOUND.getMessage());
         }
 
         @DisplayName("memberId에 해당하는 member가 있으면 member를 반환한다.")
@@ -132,9 +129,9 @@ class MemberServiceIntegrationTest {
     @DisplayName("usePoint() 테스트")
     @Nested
     class UsePointTest {
-        @DisplayName("포인트가 부족하면 MemberPointException이 발생한다.")
+        @DisplayName("포인트가 부족하면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberPointException_When_InsufficientPoint() {
+        void should_ThrowCoreException_When_InsufficientPoint() {
             // given
             Long memberId = 1L;
             int amount = 100;
@@ -143,8 +140,8 @@ class MemberServiceIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> memberService.usePoint(memberId, amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointErrorCode.INSUFFICIENT_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INSUFFICIENT_POINT_AMOUNT.getMessage());
         }
 
 

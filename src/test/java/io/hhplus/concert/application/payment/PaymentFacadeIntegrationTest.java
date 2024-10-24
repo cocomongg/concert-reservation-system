@@ -5,16 +5,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.hhplus.concert.application.payment.PaymentDto.PaymentInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
-import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
-import io.hhplus.concert.domain.member.exception.MemberPointErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberPointException;
 import io.hhplus.concert.domain.member.model.MemberPoint;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.infra.db.concert.ConcertReservationJpaRepository;
@@ -65,9 +64,9 @@ class PaymentFacadeIntegrationTest {
     @DisplayName("payment() 테스트")
     @Nested
     class PaymentTest {
-        @DisplayName("reservationId에 해당하는 ConcertReservation이 존재하지 않으면 ConcertException이 발생한다.")
+        @DisplayName("reservationId에 해당하는 ConcertReservation이 존재하지 않으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_ConcertReservationNotFound() {
+        void should_ThrowCoreException_When_ConcertReservationNotFound() {
             // given
             Long reservationId = 1L;
             String token = "token";
@@ -75,13 +74,13 @@ class PaymentFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> paymentFacade.payment(reservationId, token, dateTime))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertException.CONCERT_RESERVATION_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_RESERVATION_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("reservationId에 해당하는 ConcertReservation의 ConcertSeat이 존재하지 않으면 ConcertException이 발생한다.")
+        @DisplayName("reservationId에 해당하는 ConcertReservation의 ConcertSeat이 존재하지 않으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_ConcertSeatNotFound() {
+        void should_ThrowCoreException_When_ConcertSeatNotFound() {
             // given
             ConcertReservation savedReservation = concertReservationJpaRepository.save(
                 ConcertReservation.builder()
@@ -97,13 +96,13 @@ class PaymentFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> paymentFacade.payment(reservationId, token, dateTime))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertException.CONCERT_SEAT_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_SEAT_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("ConcertSeat이 임시 예약이 만료되면 ConcertException이 발생한다.")
+        @DisplayName("ConcertSeat이 임시 예약이 만료되면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_TemporaryReservationExpired() {
+        void should_ThrowCoreException_When_TemporaryReservationExpired() {
             // given
             int tempReserveDurationMinutes = ServicePolicy.TEMP_RESERVE_DURATION_MINUTES;
             String token = "token";
@@ -129,13 +128,13 @@ class PaymentFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> paymentFacade.payment(reservationId, token, dateTime))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertException.TEMPORARY_RESERVATION_EXPIRED.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.TEMPORARY_RESERVATION_EXPIRED.getMessage());
         }
 
-        @DisplayName("포인트 잔액이 부족하면 MemberException이 발생한다.")
+        @DisplayName("포인트 잔액이 부족하면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberPointException_When_PointIsNotEnough() {
+        void should_ThrowCorePointException_When_PointIsNotEnough() {
             // given
             Long memberId = 1L;
             String token = "token";
@@ -166,8 +165,8 @@ class PaymentFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> paymentFacade.payment(reservationId, token, dateTime))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointErrorCode.INSUFFICIENT_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INSUFFICIENT_POINT_AMOUNT.getMessage());
         }
 
         @DisplayName("결제가 정상적으로 이뤄지면 포인트가 ConcertSeat의 가격만큼 차감된다.")

@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
@@ -17,7 +17,6 @@ import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -107,21 +106,21 @@ class WaitingQueueServiceIntegrationTest {
     @DisplayName("getWaitingQueue 테스트")
     @Nested
     class GetWaitingQueueTest {
-        @DisplayName("입력된 값에 해당하는 WaitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_NotFound() {
+        void should_ThrowCoreException_When_NotFound() {
             // given
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery("token");
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.getWaitingQueue(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
 
         @DisplayName("입력된 값에 해당하는 WaitingQueue를 반환한다.")
         @Test
-        void should_ReturnWaitingQueueException_When_Found() {
+        void should_ReturnCoreException_When_Found() {
             // given
             String token = "token";
             WaitingQueue givenWaitingQueue = WaitingQueue.builder()
@@ -147,21 +146,21 @@ class WaitingQueueServiceIntegrationTest {
     @DisplayName("getWaitingQueueWithOrder 테스트")
     @Nested
     class GetWaitingQueueWithOrderTest {
-        @DisplayName("입력된 값에 해당하는 WaitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_NotFound () {
+        void should_ThrowCoreException_When_NotFound () {
             // given
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery("token");
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.getWaitingQueueWithOrder(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("입력된 값에 해당하는 waitingQueue가 대기 상태가 아니라면 WaitingQueueException이 발생한다.")
+        @DisplayName("입력된 값에 해당하는 waitingQueue가 대기 상태가 아니라면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_StatusIsNotWaiting() {
+        void should_ThrowCoreException_When_StatusIsNotWaiting() {
             // given
             String token = "tokenValue";
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
@@ -172,8 +171,8 @@ class WaitingQueueServiceIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.getWaitingQueueWithOrder(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_STATE_NOT_WAITING.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING.getMessage());
         }
 
         @DisplayName("입력된 값에 해당하는 WaitingQueue가 있으면 순서와 함께 WaitingQueueWithOrder가 반환된다.")
@@ -221,21 +220,21 @@ class WaitingQueueServiceIntegrationTest {
     @DisplayName("checkTokenActivate 테스트")
     @Nested
     class CheckTokenActivateTest {
-        @DisplayName("입력된 값에 해당하는 WaitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_NotFound() {
+        void should_ThrowCoreException_When_NotFound() {
             // given
             CheckTokenActivate query = new CheckTokenActivate("token", LocalDateTime.now());
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("입력된 값에 해당하는 WaitingQueue가 활성화 상태가 아니라면 WaitingQueueException이 발생한다.")
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 활성화 상태가 아니라면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_StatusIsNotActive() {
+        void should_ThrowCoreException_When_StatusIsNotActive() {
             // given
             String token = "tokenValue";
             CheckTokenActivate query = new CheckTokenActivate(token, LocalDateTime.now());
@@ -246,13 +245,13 @@ class WaitingQueueServiceIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("입력된 값에 해당하는 WaitingQueue가 만료되었으면 WaitingQueueException이 발생한다.")
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 만료되었으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_Expired() {
+        void should_ThrowCoreException_When_Expired() {
             // given
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();
@@ -264,13 +263,13 @@ class WaitingQueueServiceIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("입력된 값에 해당하는 WaitingQueue가 활성화 상태이고 만료되지 않았으면 WaitingQueueException이 발생하지 않는다.")
+        @DisplayName("입력된 값에 해당하는 WaitingQueue가 활성화 상태이고 만료되지 않았으면 CoreException이 발생하지 않는다.")
         @Test
-        void should_NotThrowWaitingQueueException_When_ActiveAndNotExpired() {
+        void should_NotThrowCoreException_When_ActiveAndNotExpired() {
             // given
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();

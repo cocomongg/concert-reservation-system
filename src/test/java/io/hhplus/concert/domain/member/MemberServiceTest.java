@@ -8,9 +8,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.hhplus.concert.domain.member.exception.MemberPointErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberPointException;
 import io.hhplus.concert.domain.member.model.MemberPoint;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -80,9 +80,9 @@ class MemberServiceTest {
     @DisplayName("usePoint() 테스트")
     @Nested
     class UsePointTest {
-        @DisplayName("포인트가 부족하면 MemberPointException이 발생한다.")
+        @DisplayName("포인트가 부족하면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberPointException_When_InsufficientPoint() {
+        void should_ThrowCoreException_When_InsufficientPoint() {
             // given
             Long memberId = 1L;
             int amount = 100;
@@ -94,8 +94,8 @@ class MemberServiceTest {
 
             // when, then
             assertThatThrownBy(() -> memberService.usePoint(memberId, amount + 10))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointErrorCode.INSUFFICIENT_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INSUFFICIENT_POINT_AMOUNT.getMessage());
         }
 
 

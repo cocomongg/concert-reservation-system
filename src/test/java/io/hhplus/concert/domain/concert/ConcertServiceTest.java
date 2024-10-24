@@ -9,9 +9,10 @@ import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.ReserveConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSeats;
-import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -109,28 +110,28 @@ class ConcertServiceTest {
     @DisplayName("reserveConcertSeat() 테스트")
     @Nested
     class ReserveConcertSeatTest {
-        @DisplayName("concertSeat이 존재하지 않는다면 ConcertException이 발생한다.")
+        @DisplayName("concertSeat이 존재하지 않는다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_ConcertSeatNotExist() {
+        void should_ThrowCoreException_When_ConcertSeatNotExist() {
             // given
             long concertSeatId = 1L;
             LocalDateTime now = LocalDateTime.now();
 
             when(concertRepository.getConcertSeatWithLock(any(GetConcertSeat.class)))
-                .thenThrow(ConcertException.CONCERT_SEAT_NOT_FOUND);
+                .thenThrow(new CoreException(CoreErrorType.Concert.CONCERT_SEAT_NOT_FOUND));
 
             ReserveConcertSeat command =
                 new ReserveConcertSeat(concertSeatId, now, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
 
             // when, then
             assertThatThrownBy(() -> concertService.reserveConcertSeat(command))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertException.CONCERT_SEAT_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_SEAT_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("concertSeat이 예약 불가능한 상태라면 ConcertException이 발생한다.")
+        @DisplayName("concertSeat이 예약 불가능한 상태라면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_NotReservable() {
+        void should_ThrowCoreException_When_NotReservable() {
             // given
             long concertSeatId = 1L;
             LocalDateTime now = LocalDateTime.now();
@@ -147,8 +148,8 @@ class ConcertServiceTest {
 
             // when, then
             assertThatThrownBy(() -> concertService.reserveConcertSeat(command))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertException.NOT_RESERVABLE_SEAT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.NOT_RESERVABLE_SEAT.getMessage());
         }
 
         @DisplayName("concertSeat이 예약 가능한 상태라면 예약한다.")

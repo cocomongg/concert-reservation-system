@@ -1,6 +1,7 @@
 package io.hhplus.concert.domain.concert.model;
 
-import io.hhplus.concert.domain.concert.exception.ConcertException;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -83,7 +84,7 @@ public class ConcertSeat {
 
     public void reserve(LocalDateTime currentTime, int tempReserveDurationMinutes) {
         if (!this.isReservable(currentTime, tempReserveDurationMinutes)) {
-            throw ConcertException.NOT_RESERVABLE_SEAT;
+            throw new CoreException(CoreErrorType.Concert.NOT_RESERVABLE_SEAT);
         }
 
         this.tempReservedAt = currentTime;

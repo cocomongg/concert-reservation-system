@@ -1,11 +1,10 @@
 package io.hhplus.concert.domain.member.model;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
-import io.hhplus.concert.domain.member.exception.MemberPointException;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,15 +25,15 @@ class MemberPointTest {
     @Nested
     class ValidateAmountTest {
         @Test
-        @DisplayName("amount가 0이면 MemberPointException이 발생한다.")
-        void should_ThrowMemberPointException_When_AmountIsZero() {
+        @DisplayName("amount가 0이면 CoreException이 발생한다.")
+        void should_ThrowCoreException_When_AmountIsZero() {
             // given
             int amount = 0;
             
             // when, then
             assertThatThrownBy(() -> memberPoint.validateAmount(amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointException.INVALID_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INVALID_POINT_AMOUNT.getMessage());
         }
 
         @Test
@@ -45,8 +44,8 @@ class MemberPointTest {
 
             // when, then
             assertThatThrownBy(() -> memberPoint.validateAmount(amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointException.INVALID_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INVALID_POINT_AMOUNT.getMessage());
         }
     }
 
@@ -71,27 +70,27 @@ class MemberPointTest {
         }
 
         @Test
-        @DisplayName("amount가 0이면 MemberPointException이 발생한다.")
-        void should_ThrowMemberPointException_When_AmountIsZero() {
+        @DisplayName("amount가 0이면 CoreException이 발생한다.")
+        void should_ThrowCoreException_When_AmountIsZero() {
             // given
             int amount = 0;
 
             // When & Then
             assertThatThrownBy(() -> memberPoint.validateAmount(amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointException.INVALID_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INVALID_POINT_AMOUNT.getMessage());
         }
 
         @Test
-        @DisplayName("amount가 음수이면 MemberPointException이 발생한다.")
-        void should_ThrowMemberPointException_When_AmountIsNegative() {
+        @DisplayName("amount가 음수이면 CoreException이 발생한다.")
+        void should_ThrowCoreException_When_AmountIsNegative() {
             // given
             int amount = -20;
 
             // when, then
             assertThatThrownBy(() -> memberPoint.validateAmount(amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointException.INVALID_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INVALID_POINT_AMOUNT.getMessage());
         }
     }
 
@@ -116,40 +115,40 @@ class MemberPointTest {
         }
 
         @Test
-        @DisplayName("보유 포인트가 부족하면 MemberPointException이 발생한다.")
-        void should_ThrowMemberPointException_When_PointAmountIsInsufficient() {
+        @DisplayName("보유 포인트가 부족하면 CoreException이 발생한다.")
+        void should_ThrowCoreException_When_PointAmountIsInsufficient() {
             // given
             int originAmount = memberPoint.getPointAmount();
             int amount = originAmount + 1;
 
             // when, then
             assertThatThrownBy(() -> memberPoint.usePoint(amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointException.INSUFFICIENT_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INSUFFICIENT_POINT_AMOUNT.getMessage());
         }
 
         @Test
-        @DisplayName("amount가 0이면 MemberPointException이 발생한다.")
+        @DisplayName("amount가 0이면 CoreException이 발생한다.")
         void should_ThrowMemberPException_When_AmountIsZero() {
             // given
             int amount = 0;
 
             // when, then
             assertThatThrownBy(() -> memberPoint.validateAmount(amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointException.INVALID_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INVALID_POINT_AMOUNT.getMessage());
         }
 
         @Test
-        @DisplayName("amount가 음수이면 MemberPointException이 발생한다.")
+        @DisplayName("amount가 음수이면 CoreException이 발생한다.")
         void should_ThrowException_When_AmountIsNegative() {
             // given
             int amount = -10;
 
             // when, then
             assertThatThrownBy(() -> memberPoint.validateAmount(amount))
-                .isInstanceOf(MemberPointException.class)
-                .hasMessage(MemberPointException.INVALID_POINT_AMOUNT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.INVALID_POINT_AMOUNT.getMessage());
         }
     }
 }

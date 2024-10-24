@@ -12,14 +12,14 @@ import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSchedules;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetReservableConcertSeats;
-import io.hhplus.concert.domain.concert.exception.ConcertErrorCode;
-import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.Concert;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
 import io.hhplus.concert.domain.concert.model.ConcertSchedule;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.infra.db.concert.ConcertJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertReservationJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertScheduleJpaRepository;
@@ -65,16 +65,16 @@ class ConcertServiceIntegrationTest {
     @DisplayName("getConcertSeat() 테스트")
     @Nested
     class GetConcertSeatTest {
-        @DisplayName("id에 해당하는 concertSeat이 없다면 ConcertException이 발생한다.")
+        @DisplayName("id에 해당하는 concertSeat이 없다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_NotFound () {
+        void should_ThrowCoreException_When_NotFound () {
             // given
             GetConcertSeat query = new GetConcertSeat(0L);
 
             // when, then
             assertThatThrownBy(() -> concertService.getConcertSeat(query))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_SEAT_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_SEAT_NOT_FOUND.getMessage());
         }
 
         @DisplayName("id에 해당하는 concertSeat을 반환한다.")
@@ -153,16 +153,16 @@ class ConcertServiceIntegrationTest {
     @DisplayName("getConcert() 테스트")
     @Nested
     class GetConcertTest {
-        @DisplayName("id에 해당하는 concert가 없다면 ConcertException이 발생한다.")
+        @DisplayName("id에 해당하는 concert가 없다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_ConcertNotFound() {
+        void should_ThrowCoreException_When_ConcertNotFound() {
             // given
             GetConcert query = new GetConcert(0L);
 
             // when, then
             assertThatThrownBy(() -> concertService.getConcert(query))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_NOT_FOUND.getMessage());
         }
 
         @DisplayName("id에 해당하는 concert을 반환한다.")
@@ -188,16 +188,16 @@ class ConcertServiceIntegrationTest {
     @DisplayName("getConcertSchedule() 테스트")
     @Nested
     class GetConcertScheduleTest {
-        @DisplayName("id에 해당하는 concertSchedule이 없다면 ConcertException이 발생한다.")
+        @DisplayName("id에 해당하는 concertSchedule이 없다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_ConcertScheduleNotFound() {
+        void should_ThrowCoreException_When_ConcertScheduleNotFound() {
             // given
             GetConcertSchedule query = new GetConcertSchedule(0L);
 
             // when, then
             assertThatThrownBy(() -> concertService.getConcertSchedule(query))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_SCHEDULE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_SCHEDULE_NOT_FOUND.getMessage());
         }
 
         @DisplayName("id에 해당하는 concertSchedule을 반환한다.")
@@ -346,17 +346,17 @@ class ConcertServiceIntegrationTest {
     @DisplayName("getConcertReservation() 테스트")
     @Nested
     class GetConcertReservationTest {
-        @DisplayName("id에 해당하는 concertReservation이 없다면 ConcertException이 발생한다.")
+        @DisplayName("id에 해당하는 concertReservation이 없다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_ConcertReservationNotFound() {
+        void should_ThrowCoreException_When_ConcertReservationNotFound() {
             // given
             long concertReservationId = 0L;
             GetConcertReservation query = new GetConcertReservation(concertReservationId);
 
             // when, then
             assertThatThrownBy(() -> concertService.getConcertReservation(query))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_RESERVATION_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_RESERVATION_NOT_FOUND.getMessage());
         }
 
         @DisplayName("id에 해당하는 concertReservation을 반환한다.")
@@ -385,9 +385,9 @@ class ConcertServiceIntegrationTest {
     @Nested
     class ReserveConcertSeatTest {
 
-        @DisplayName("id에 해당하는 concertSeat이 없다면 ConcertException이 발생한다.")
+        @DisplayName("id에 해당하는 concertSeat이 없다면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_ConcertSeatNotFound() {
+        void should_ThrowCoreException_When_ConcertSeatNotFound() {
             // given
             long concertSeatId = 0L;
             ReserveConcertSeat command = new ReserveConcertSeat(concertSeatId, LocalDateTime.now(),
@@ -395,13 +395,13 @@ class ConcertServiceIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> concertService.reserveConcertSeat(command))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.CONCERT_SEAT_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.CONCERT_SEAT_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("예약이 불가능한 상태면 ConcertException이 발생한다.")
+        @DisplayName("예약이 불가능한 상태면 CoreException이 발생한다.")
         @Test
-        void should_ThrowConcertException_When_NotReservable() {
+        void should_ThrowCoreException_When_NotReservable() {
             // given
             int tempReserveDurationMinutes = ServicePolicy.TEMP_RESERVE_DURATION_MINUTES;
             LocalDateTime now = LocalDateTime.now();
@@ -420,8 +420,8 @@ class ConcertServiceIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> concertService.reserveConcertSeat(command))
-                .isInstanceOf(ConcertException.class)
-                .hasMessage(ConcertErrorCode.NOT_RESERVABLE_SEAT.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Concert.NOT_RESERVABLE_SEAT.getMessage());
         }
 
         @DisplayName("예약이 가능한 상태면 concertSeat을 임시 예약한다.")

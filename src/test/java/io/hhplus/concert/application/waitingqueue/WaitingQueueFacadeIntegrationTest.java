@@ -6,8 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueInfo;
 import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueWithOrderInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
@@ -87,21 +87,21 @@ class WaitingQueueFacadeIntegrationTest {
     @DisplayName("getWaitingQueueWithOrder() 테스트")
     @Nested
     class GetWaitingQueueWithOrderTest {
-        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_WaitingQueueNotFound () {
+        void should_ThrowCoreException_When_WaitingQueueNotFound () {
             // given
             String token = "InvalidToken";
 
             // when, then
             assertThatThrownBy(() -> waitingQueueFacade.getWaitingQueueWithOrder(token))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("토큰에 해당하는 waitingQueue가 대기상태가 아니라면 WaitingQueueException이 발생한다.")
+        @DisplayName("토큰에 해당하는 waitingQueue가 대기상태가 아니라면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_StatusIsNotWaiting () {
+        void should_ThrowCoreException_When_StatusIsNotWaiting () {
             // given
             String token = "token";
             WaitingQueue waitingQueue = WaitingQueue.builder()
@@ -115,8 +115,8 @@ class WaitingQueueFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueFacade.getWaitingQueueWithOrder(token))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_STATE_NOT_WAITING.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING.getMessage());
         }
 
         @DisplayName("토큰에 해당하는 waitingQueue가 대기상태라면 WaitingQueueWithOrder를 반환한다.")
@@ -163,22 +163,22 @@ class WaitingQueueFacadeIntegrationTest {
     @DisplayName("checkTokenActivate() 테스트")
     @Nested
     class CheckTokenActivateTest {
-        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 WaitingQueueException이 발생한다.")
+        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_WaitingQueueNotFound () {
+        void should_ThrowCoreException_When_WaitingQueueNotFound () {
             // given
             String token = "InvalidToken";
             LocalDateTime now = LocalDateTime.now();
 
             // when, then
             assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.WAITING_QUEUE_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
 
-        @DisplayName("토큰에 해당하는 waitingQueue가 만료되었으면 WaitingQueueException이 발생한다.")
+        @DisplayName("토큰에 해당하는 waitingQueue가 만료되었으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_ActiveTokenIsExpired() {
+        void should_ThrowCoreException_When_ActiveTokenIsExpired() {
             // given
             String token = "token";
             LocalDateTime now = LocalDateTime.now();
@@ -194,13 +194,13 @@ class WaitingQueueFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("토큰의 상태가 Active가 아니면 WaitingQueueException이 발생한다.")
+        @DisplayName("토큰의 상태가 Active가 아니면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_StatusIsNotActive() {
+        void should_ThrowCoreException_When_StatusIsNotActive() {
             // given
             String token = "token";
             LocalDateTime now = LocalDateTime.now();
@@ -215,11 +215,11 @@ class WaitingQueueFacadeIntegrationTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("토큰의 상태가 Active이고 만료되지 않았으면 WaitingQueueException이 발생하지 않는다.")
+        @DisplayName("토큰의 상태가 Active이고 만료되지 않았으면 CoreException이 발생하지 않는다.")
         @Test
         void should_NotThrowException_When_TokenIsValid () {
             // given

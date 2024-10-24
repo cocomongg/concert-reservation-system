@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueErrorCode;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,9 +16,9 @@ class WaitingQueueTest {
     @DisplayName("checkNotWaiting() 테스트")
     @Nested
     class CheckNotWaitingTest {
-        @DisplayName("대기상태가 아니면 WaitingQueueException이 발생한다.")
+        @DisplayName("대기상태가 아니면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_StatusIsNotWaiting() {
+        void should_ThrowCoreException_When_StatusIsNotWaiting() {
             // given
             WaitingQueueStatus status = WaitingQueueStatus.ACTIVE;
             WaitingQueue waitingQueue = new WaitingQueue(1L, "token", status,
@@ -26,8 +26,8 @@ class WaitingQueueTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueue.checkNotWaiting())
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_STATE_NOT_WAITING.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING.getMessage());
         }
 
         @DisplayName("대기상태면 예외를 발생시키지 않는다.")
@@ -46,9 +46,9 @@ class WaitingQueueTest {
     @DisplayName("checkActivated() 테스트")
     @Nested
     class CheckActivatedTest {
-        @DisplayName("활성화 상태가 아니면 WaitingQueueException이 발생한다.")
+        @DisplayName("활성화 상태가 아니면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_StatusIsNotActive() {
+        void should_ThrowCoreException_When_StatusIsNotActive() {
             // given
             WaitingQueueStatus status = WaitingQueueStatus.WAITING;
             WaitingQueue waitingQueue = new WaitingQueue(1L, "token", status,
@@ -56,13 +56,13 @@ class WaitingQueueTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueue.checkActivated(LocalDateTime.now()))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("만료시간이 지났으면 WaitingQueueException이 발생한다.")
+        @DisplayName("만료시간이 지났으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowWaitingQueueException_When_Expired() {
+        void should_ThrowCoreException_When_Expired() {
             // given
             WaitingQueueStatus status = WaitingQueueStatus.ACTIVE;
             LocalDateTime currentTime = LocalDateTime.now();
@@ -71,8 +71,8 @@ class WaitingQueueTest {
 
             // when, then
             assertThatThrownBy(() -> waitingQueue.checkActivated(currentTime))
-                .isInstanceOf(WaitingQueueException.class)
-                .hasMessage(WaitingQueueErrorCode.INVALID_WAITING_QUEUE.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
         @DisplayName("활성화 상태면 예외를 발생시키지 않는다.")
