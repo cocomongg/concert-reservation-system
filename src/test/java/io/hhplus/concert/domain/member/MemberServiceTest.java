@@ -41,7 +41,7 @@ class MemberServiceTest {
             MemberPoint existingMemberPoint = new MemberPoint(1L, memberId, 100,
                 LocalDateTime.now(), null);
 
-            when(memberRepository.getOptionalMemberPoint(memberId))
+            when(memberRepository.getOptionalMemberPointWithLock(memberId))
                 .thenReturn(Optional.of(existingMemberPoint));
 
             // When
@@ -60,7 +60,7 @@ class MemberServiceTest {
             // Given
             Long memberId = 1L;
 
-            when(memberRepository.getOptionalMemberPoint(memberId))
+            when(memberRepository.getOptionalMemberPointWithLock(memberId))
                 .thenReturn(Optional.empty());
 
             MemberPoint savedMemberPoint = MemberPoint.createDefault(memberId);
@@ -89,7 +89,7 @@ class MemberServiceTest {
             MemberPoint existingMemberPoint = new MemberPoint(1L, memberId, amount,
                 LocalDateTime.now(), null);
 
-            when(memberRepository.getOptionalMemberPoint(memberId))
+            when(memberRepository.getOptionalMemberPointWithLock(memberId))
                 .thenReturn(Optional.of(existingMemberPoint));
 
             // when, then
@@ -107,7 +107,7 @@ class MemberServiceTest {
             MemberPoint existingMemberPoint = new MemberPoint(1L, memberId, 100,
                 LocalDateTime.now(), null);
 
-            when(memberRepository.getOptionalMemberPoint(memberId))
+            when(memberRepository.getOptionalMemberPointWithLock(memberId))
                 .thenReturn(Optional.of(existingMemberPoint));
 
             // when
@@ -131,7 +131,7 @@ class MemberServiceTest {
             MemberPoint existingMemberPoint = new MemberPoint(1L, memberId, 100,
                 LocalDateTime.now(), null);
 
-            when(memberRepository.getOptionalMemberPoint(memberId))
+            when(memberRepository.getOptionalMemberPointWithLock(memberId))
                 .thenReturn(Optional.of(existingMemberPoint));
 
             // when

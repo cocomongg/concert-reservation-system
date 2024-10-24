@@ -28,6 +28,11 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
+    public Optional<MemberPoint> getOptionalMemberPointWithLock(Long memberId) {
+        return memberPointJpaRepository.findByMemberIdWithLock(memberId);
+    }
+
+    @Override
     public MemberPoint saveMemberPoint(MemberPoint memberPoint) {
         return memberPointJpaRepository.save(memberPoint);
     }
