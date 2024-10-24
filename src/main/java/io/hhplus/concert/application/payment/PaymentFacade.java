@@ -22,9 +22,11 @@ import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQue
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class PaymentFacade {
@@ -42,12 +44,7 @@ public class PaymentFacade {
         Long concertSeatId = concertReservation.getConcertSeatId();
         ConcertSeat concertSeat =
             concertService.getConcertSeatWithLock(new GetConcertSeat(concertSeatId));
-
-        boolean temporarilyReserved = concertSeat.isTemporarilyReserved(dateTime,
-            ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
-        if (!temporarilyReserved) {
-            throw new CoreException(CoreErrorType.Concert.TEMPORARY_RESERVATION_EXPIRED);
-        }
+        concertSeat.checkExpired(dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
 
         int priceAmount = concertSeat.getPriceAmount();
         // 포인트 차감

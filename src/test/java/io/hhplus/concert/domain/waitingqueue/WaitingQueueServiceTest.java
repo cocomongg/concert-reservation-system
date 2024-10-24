@@ -25,6 +25,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,13 +55,20 @@ class WaitingQueueServiceTest {
             when(waitingQueueRepository.getActiveCount())
                 .thenReturn(activeCount);
 
+            WaitingQueue activeWaitingQueue = WaitingQueue.createActiveWaitingQueue(
+                command.getToken(), command.getExpireAt());
+
             // when
-            WaitingQueue result = waitingQueueService.createWaitingQueue(command);
+            waitingQueueService.createWaitingQueue(command);
 
             // then
-            assertThat(result.getToken()).isEqualTo(token);
-            assertThat(result.getExpireAt()).isEqualTo(expireAt);
-            assertThat(result.getStatus()).isEqualTo(WaitingQueueStatus.ACTIVE);
+            ArgumentCaptor<WaitingQueue> captor = ArgumentCaptor.forClass(WaitingQueue.class);
+            verify(waitingQueueRepository).saveWaitingQueue(captor.capture());
+            WaitingQueue result = captor.getValue();
+
+            assertThat(result.getToken()).isEqualTo(activeWaitingQueue.getToken());
+            assertThat(result.getStatus()).isEqualTo(activeWaitingQueue.getStatus());
+            assertThat(result.getExpireAt()).isEqualTo(activeWaitingQueue.getExpireAt());
         }
 
         @DisplayName("활성화 대기열이 최대 인원보다 많다면 일반 대기열을 생성한다.")
@@ -76,13 +84,19 @@ class WaitingQueueServiceTest {
             when(waitingQueueRepository.getActiveCount())
                 .thenReturn(activeCount);
 
+            WaitingQueue waitingQueue = WaitingQueue.createWaitingQueue(command.getToken());
+
             // when
-            WaitingQueue result = waitingQueueService.createWaitingQueue(command);
+            waitingQueueService.createWaitingQueue(command);
 
             // then
-            assertThat(result.getToken()).isEqualTo(token);
-            assertThat(result.getExpireAt()).isNull();
-            assertThat(result.getStatus()).isEqualTo(WaitingQueueStatus.WAITING);
+            ArgumentCaptor<WaitingQueue> captor = ArgumentCaptor.forClass(WaitingQueue.class);
+            verify(waitingQueueRepository).saveWaitingQueue(captor.capture());
+            WaitingQueue result = captor.getValue();
+
+            assertThat(result.getToken()).isEqualTo(waitingQueue.getToken());
+            assertThat(result.getStatus()).isEqualTo(waitingQueue.getStatus());
+            assertThat(result.getExpireAt()).isEqualTo(waitingQueue.getExpireAt());
         }
     }
 
