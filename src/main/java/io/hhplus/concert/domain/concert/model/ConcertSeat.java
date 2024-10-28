@@ -72,7 +72,7 @@ public class ConcertSeat {
     }
 
     public boolean isTemporarilyReserved(LocalDateTime currentTime, int tempReserveDurationMinutes) {
-        if(Objects.isNull(this.tempReservedAt)) {
+        if(Objects.isNull(this.tempReservedAt) || ConcertSeatStatus.RESERVED_COMPLETE.equals(this.status)) {
             return false;
         }
 
@@ -89,6 +89,12 @@ public class ConcertSeat {
 
         this.tempReservedAt = currentTime;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void checkExpired(LocalDateTime currentTime, int tempReserveDurationMinutes) {
+        if(!this.isTemporarilyReserved(currentTime, tempReserveDurationMinutes)) {
+            throw new CoreException(CoreErrorType.Concert.TEMPORARY_RESERVATION_EXPIRED);
+        }
     }
 
     public void completeReservation(LocalDateTime currentTime) {

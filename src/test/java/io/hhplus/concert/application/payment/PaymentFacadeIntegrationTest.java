@@ -23,6 +23,12 @@ import io.hhplus.concert.infra.db.payment.PaymentJpaRepository;
 import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+@Slf4j
 @ActiveProfiles("test")
 @SpringBootTest
 class PaymentFacadeIntegrationTest {
@@ -358,6 +365,84 @@ class PaymentFacadeIntegrationTest {
             assertThat(payment).isNotNull();
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
             assertThat(payment.getPaidAmount()).isEqualTo(10000);
+        }
+    }
+
+    @DisplayName("결제 동시성 테스트")
+    @Nested
+    class PaymentConcurrencyTest {
+        @DisplayName("같은 예약에 대해서 동시에 결제 요청이 들어오면 하나의 결제만 처리된다.")
+        @Test
+        void should_ExecuteOnlyOnePayment_When_PaymentRequestIsConcurrent()
+            throws InterruptedException {
+            // given
+            Long memberId = 1L;
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
+                .concertScheduleId(1L)
+                .seatNumber(10)
+                .priceAmount(10000)
+                .tempReservedAt(dateTime)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+            ConcertReservation savedReservation = concertReservationJpaRepository.save(
+                ConcertReservation.builder()
+                    .memberId(memberId)
+                    .concertSeatId(savedSeat.getId())
+                    .status(ConcertReservationStatus.PENDING)
+                    .createdAt(LocalDateTime.now())
+                    .build());
+
+            Long reservationId = savedReservation.getId();
+            String token = "token";
+
+            memberPointJpaRepository.save(MemberPoint.builder()
+                .memberId(memberId)
+                .pointAmount(20000)
+                .build());
+
+            waitingQueueJpaRepository.save(WaitingQueue.builder()
+                .token(token)
+                .status(WaitingQueueStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+            // when
+            int attemptCount = 30;
+            ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
+            CountDownLatch latch = new CountDownLatch(attemptCount);
+
+            AtomicInteger successCount = new AtomicInteger(0);
+            AtomicInteger failCount = new AtomicInteger(0);
+            for (int i = 0; i < attemptCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        paymentFacade.payment(reservationId, token, dateTime);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        failCount.incrementAndGet();
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+            executorService.shutdown();
+
+            // then
+            List<Payment> payments = paymentJpaRepository.findAll();
+            assertThat(payments).hasSize(1);
+
+            Payment payment = payments.get(0);
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+            assertThat(payment.getPaidAmount()).isEqualTo(savedSeat.getPriceAmount());
+            assertThat(payment.getReservationId()).isEqualTo(savedReservation.getId());
+
+            assertThat(successCount.get()).isEqualTo(1);
+            assertThat(failCount.get()).isEqualTo(attemptCount - 1);
         }
     }
 

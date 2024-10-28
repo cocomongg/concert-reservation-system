@@ -11,6 +11,10 @@ import io.hhplus.concert.infra.db.member.MemberJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -171,6 +175,58 @@ class MemberFacadeTest {
             assertThat(memberPointInfo).isNotNull();
             assertThat(memberPointInfo.getMemberId()).isEqualTo(memberId);
             assertThat(memberPointInfo.getPointAmount()).isEqualTo(200);
+        }
+    }
+
+    @DisplayName("포인트 충전 동시성 테스트")
+    @Nested
+    class ChargeMemberPointConcurrencyTest {
+        @DisplayName("한명의 유저 포인트에 대해 동시에 충전할 경우, 충전한 만큼 증가한다")
+        @Test
+        void should_CalculateCorrectly_WhenChargePointConcurrently() throws InterruptedException {
+            // given
+            Long memberId = 1L;
+            int balanceAmount = 1000;
+            int chargeAmount = 10;
+
+            Member member = memberJpaRepository.save(new Member(null, "name", "email",
+                LocalDateTime.now(), null));
+
+            MemberPoint memberPoint = memberPointJpaRepository.save(
+                new MemberPoint(null, member.getId(), balanceAmount,
+                    LocalDateTime.now(), null));
+
+            // when
+            int attemptCount = 20;
+            ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
+            CountDownLatch latch = new CountDownLatch(attemptCount);
+
+            AtomicInteger successCount = new AtomicInteger(0);
+            AtomicInteger failCount = new AtomicInteger(0);
+            for (int i = 0; i < attemptCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        memberFacade.chargeMemberPoint(memberId, chargeAmount);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        failCount.incrementAndGet();
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+            executorService.shutdown();
+
+            // then
+            MemberPoint result = memberPointJpaRepository.findById(memberPoint.getId())
+                .orElse(null);
+            assertThat(result).isNotNull();
+
+            assertThat(result.getPointAmount())
+                .isEqualTo(balanceAmount + chargeAmount * attemptCount);
+            assertThat(successCount.get()).isEqualTo(attemptCount);
         }
     }
 }

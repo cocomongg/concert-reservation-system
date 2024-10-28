@@ -10,5 +10,7 @@ public interface MemberRepository {
 
     Optional<MemberPoint> getOptionalMemberPoint(Long memberId);
 
+    Optional<MemberPoint> getOptionalMemberPointWithLock(Long memberId);
+
     MemberPoint saveMemberPoint(MemberPoint memberPoint);
 }

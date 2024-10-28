@@ -4,9 +4,11 @@ import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class MemberService {
@@ -21,7 +23,7 @@ public class MemberService {
     @Transactional
     public MemberPoint getOrDefaultMemberPoint(Long memberId) {
         Optional<MemberPoint> optionalMemberPoint =
-            memberRepository.getOptionalMemberPoint(memberId);
+            memberRepository.getOptionalMemberPointWithLock(memberId);
 
         return optionalMemberPoint.orElseGet(() ->
             memberRepository.saveMemberPoint(MemberPoint.createDefault(memberId)));
