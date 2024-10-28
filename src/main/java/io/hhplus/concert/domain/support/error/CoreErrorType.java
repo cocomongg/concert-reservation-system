@@ -40,8 +40,9 @@ public enum CoreErrorType implements ErrorType {
     @AllArgsConstructor
     public enum WaitingQueue implements ErrorType {
         INVALID_STATE_NOT_WAITING(ErrorCode.BUSINESS_ERROR, "Invalid state, should be in waiting status", LogLevel.WARN),
-        INVALID_WAITING_QUEUE(ErrorCode.BUSINESS_ERROR, "Invalid WaitingQueue", LogLevel.WARN),
-        WAITING_QUEUE_NOT_FOUND(ErrorCode.NOT_FOUND, "WaitingQueue not found", LogLevel.WARN);
+        WAITING_QUEUE_NOT_FOUND(ErrorCode.NOT_FOUND, "WaitingQueue not found", LogLevel.WARN),
+        INVALID_WAITING_QUEUE(ErrorCode.UNAUTHORIZED, "Invalid WaitingQueue", LogLevel.WARN),
+        QUEUE_TOKEN_MISSING(ErrorCode.UNAUTHORIZED, "Queue token is missing", LogLevel.WARN);
 
         private final ErrorCode errorCode;
         private final String message;
