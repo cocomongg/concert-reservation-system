@@ -2,16 +2,19 @@ package io.hhplus.concert.application.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
-import io.hhplus.concert.domain.member.exception.MemberErrorCode;
-import io.hhplus.concert.domain.member.exception.MemberException;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.infra.db.member.MemberJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,16 +47,16 @@ class MemberFacadeTest {
     @DisplayName("getMemberPoint()")
     @Nested
     class GetMemberPoint {
-        @DisplayName("memberId에 해당하는 Member가 없으면 MemberException이 발생한다.")
+        @DisplayName("memberId에 해당하는 Member가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberException_WhenMemberNotFound() {
+        void should_ThrowCoreException_WhenMemberNotFound() {
             // given
             Long memberId = 0L;
 
             // when, then
             assertThatThrownBy(() -> memberFacade.getMemberPoint(memberId))
-                .isInstanceOf(MemberException.class)
-                .hasMessage(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.MEMBER_NOT_FOUND.getMessage());
         }
 
         @DisplayName("memberId에 해당하는 MemberPoint가 없으면 MemberPoint를 생성한다.")
@@ -109,17 +112,17 @@ class MemberFacadeTest {
     @Nested
     class ChargeMemberPoint {
 
-        @DisplayName("memberId에 해당하는 Member가 없으면 MemberException이 발생한다.")
+        @DisplayName("memberId에 해당하는 Member가 없으면 CoreException이 발생한다.")
         @Test
-        void should_ThrowMemberException_WhenMemberNotFound() {
+        void should_ThrowCoreException_WhenMemberNotFound() {
             // given
             Long memberId = 0L;
             int amount = 100;
 
             // when, then
             assertThatThrownBy(() -> memberFacade.chargeMemberPoint(memberId, amount))
-                .isInstanceOf(MemberException.class)
-                .hasMessage(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .isInstanceOf(CoreException.class)
+                .hasMessage(CoreErrorType.Member.MEMBER_NOT_FOUND.getMessage());
         }
 
         @DisplayName("memberId에 해당하는 MemberPoint가 없으면 MemberPoint를 생성하고 point를 충전한다.")
@@ -172,6 +175,58 @@ class MemberFacadeTest {
             assertThat(memberPointInfo).isNotNull();
             assertThat(memberPointInfo.getMemberId()).isEqualTo(memberId);
             assertThat(memberPointInfo.getPointAmount()).isEqualTo(200);
+        }
+    }
+
+    @DisplayName("포인트 충전 동시성 테스트")
+    @Nested
+    class ChargeMemberPointConcurrencyTest {
+        @DisplayName("한명의 유저 포인트에 대해 동시에 충전할 경우, 충전한 만큼 증가한다")
+        @Test
+        void should_CalculateCorrectly_WhenChargePointConcurrently() throws InterruptedException {
+            // given
+            Long memberId = 1L;
+            int balanceAmount = 1000;
+            int chargeAmount = 10;
+
+            Member member = memberJpaRepository.save(new Member(null, "name", "email",
+                LocalDateTime.now(), null));
+
+            MemberPoint memberPoint = memberPointJpaRepository.save(
+                new MemberPoint(null, member.getId(), balanceAmount,
+                    LocalDateTime.now(), null));
+
+            // when
+            int attemptCount = 20;
+            ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
+            CountDownLatch latch = new CountDownLatch(attemptCount);
+
+            AtomicInteger successCount = new AtomicInteger(0);
+            AtomicInteger failCount = new AtomicInteger(0);
+            for (int i = 0; i < attemptCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        memberFacade.chargeMemberPoint(memberId, chargeAmount);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        failCount.incrementAndGet();
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+            executorService.shutdown();
+
+            // then
+            MemberPoint result = memberPointJpaRepository.findById(memberPoint.getId())
+                .orElse(null);
+            assertThat(result).isNotNull();
+
+            assertThat(result.getPointAmount())
+                .isEqualTo(balanceAmount + chargeAmount * attemptCount);
+            assertThat(successCount.get()).isEqualTo(attemptCount);
         }
     }
 }

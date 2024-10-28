@@ -5,7 +5,6 @@ import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.ConcertService;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
-import io.hhplus.concert.domain.concert.exception.ConcertException;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.member.MemberService;
@@ -16,14 +15,18 @@ import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class PaymentFacade {
@@ -41,12 +44,7 @@ public class PaymentFacade {
         Long concertSeatId = concertReservation.getConcertSeatId();
         ConcertSeat concertSeat =
             concertService.getConcertSeatWithLock(new GetConcertSeat(concertSeatId));
-
-        boolean temporarilyReserved = concertSeat.isTemporarilyReserved(dateTime,
-            ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
-        if (!temporarilyReserved) {
-            throw ConcertException.TEMPORARY_RESERVATION_EXPIRED;
-        }
+        concertSeat.checkExpired(dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
 
         int priceAmount = concertSeat.getPriceAmount();
         // 포인트 차감

@@ -1,8 +1,9 @@
 package io.hhplus.concert.infra.db.waitingqueue;
 
+import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueRepository;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
-import io.hhplus.concert.domain.waitingqueue.exception.WaitingQueueException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import java.time.LocalDateTime;
@@ -25,7 +26,7 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     @Override
     public WaitingQueue getWaitingQueue(GetWaitingQueueCommonQuery query) {
         return waitingQueueJpaRepository.findByToken(query.getToken())
-            .orElseThrow(() -> WaitingQueueException.WAITING_QUEUE_NOT_FOUND);
+            .orElseThrow(() -> new CoreException(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND));
     }
 
     @Override
@@ -45,8 +46,19 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     }
 
     @Override
+    public List<Long> getExpireTargetIds(LocalDateTime currentTime) {
+        return waitingQueueJpaRepository.findExpireTargetIds(currentTime);
+    }
+
+    @Override
     public int activateWaitingQueues(List<Long> ids) {
         return waitingQueueJpaRepository.updateStatusByIds(ids, WaitingQueueStatus.ACTIVE,
+            LocalDateTime.now());
+    }
+
+    @Override
+    public int expireWaitingQueues(List<Long> ids) {
+        return waitingQueueJpaRepository.updateStatusByIds(ids, WaitingQueueStatus.EXPIRED,
             LocalDateTime.now());
     }
 }

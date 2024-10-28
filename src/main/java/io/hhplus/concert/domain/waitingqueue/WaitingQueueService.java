@@ -5,6 +5,7 @@ import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenAct
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,11 +20,13 @@ public class WaitingQueueService {
     @Transactional
     public WaitingQueue createWaitingQueue(CreateWaitingQueue command) {
         Long activeCount = this.getActiveCount();
+
+        WaitingQueue waitingQueue = WaitingQueue.createWaitingQueue(command.getToken());
         if(activeCount < command.getMaxActiveCount()) {
-            return WaitingQueue.createActiveWaitingQueue(command.getToken(), command.getExpireAt());
+            waitingQueue = WaitingQueue.createActiveWaitingQueue(command.getToken(), command.getExpireAt());
         }
 
-        return WaitingQueue.createWaitingQueue(command.getToken());
+        return waitingQueueRepository.saveWaitingQueue(waitingQueue);
     }
 
     @Transactional(readOnly = true)
@@ -55,21 +58,32 @@ public class WaitingQueueService {
     }
 
     @Transactional
-    public void activateToken(int maxActiveCount) {
+    public int activateToken(int maxActiveCount) {
         Long activeCount = this.getActiveCount();
         int countToActivate = maxActiveCount - activeCount.intValue();
 
         if(countToActivate <= 0) {
-            return;
+            return countToActivate;
         }
 
         List<Long> waitingQueueIds =
             waitingQueueRepository.getOldestWaitedQueueIds(countToActivate);
 
         if(waitingQueueIds.isEmpty()) {
-            return;
+            return countToActivate;
         }
 
-        waitingQueueRepository.activateWaitingQueues(waitingQueueIds);
+        return waitingQueueRepository.activateWaitingQueues(waitingQueueIds);
+    }
+
+    @Transactional
+    public int expireTokens(LocalDateTime currentTime) {
+        List<Long> expireTargetIds = waitingQueueRepository.getExpireTargetIds(currentTime);
+
+        if(expireTargetIds.isEmpty()) {
+            return 0;
+        }
+
+        return waitingQueueRepository.expireWaitingQueues(expireTargetIds);
     }
 }
