@@ -228,6 +228,7 @@ class MemberFacadeTest {
             stopWatch.stop();
 
             // then
+            log.info(stopWatch.prettyPrint());
             MemberPoint result = memberPointJpaRepository.findById(memberPoint.getId())
                 .orElse(null);
             assertThat(result).isNotNull();
