@@ -38,7 +38,7 @@ public class DistributedLockAspect {
             locked = distributedLockManager.tryLock(key, distributedLock.waitTime(),
                 distributedLock.leaseTime(), distributedLock.timeUnit());
             if(!locked) {
-                return false;
+                throw new CoreException(CoreErrorType.ACQUIRED_LOCK_FAILURE);
             }
 
             return joinPoint.proceed();
