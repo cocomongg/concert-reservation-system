@@ -25,7 +25,7 @@ public class MemberFacade {
 
     @Retryable(
         retryFor = ObjectOptimisticLockingFailureException.class,
-        maxAttempts = 5,
+        maxAttempts = 30,
         backoff = @Backoff(delay = 100)
     )
     @Transactional

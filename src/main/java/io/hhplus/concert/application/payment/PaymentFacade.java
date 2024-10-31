@@ -41,12 +41,11 @@ public class PaymentFacade {
 
     @Retryable(
         retryFor = ObjectOptimisticLockingFailureException.class,
-        maxAttempts = 5,
+        maxAttempts = 30,
         backoff = @Backoff(delay = 100)
     )
     @Transactional
     public PaymentInfo payment(Long reservationId, String token, LocalDateTime dateTime) {
-        log.info("#### payment");
         ConcertReservation concertReservation =
             concertService.getConcertReservation(new GetConcertReservation(reservationId));
 

@@ -59,11 +59,6 @@ public class ConcertFacade {
             .toList();
     }
 
-    @Retryable(
-        retryFor = ObjectOptimisticLockingFailureException.class,
-        maxAttempts = 5,
-        backoff = @Backoff(delay = 100)
-    )
     @Transactional
     public ConcertReservationInfo reserveConcertSeat(Long concertSeatId, Long memberId, LocalDateTime dateTime) {
         Member member = memberService.getMember(memberId);
