@@ -5,6 +5,9 @@ import io.hhplus.concert.domain.member.MemberService;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,11 @@ public class MemberFacade {
         return new MemberPointInfo(memberPoint);
     }
 
+    @Retryable(
+        retryFor = ObjectOptimisticLockingFailureException.class,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 100)
+    )
     @Transactional
     public MemberPointInfo chargeMemberPoint(Long memberId, int amount) {
         Member member = memberService.getMember(memberId);

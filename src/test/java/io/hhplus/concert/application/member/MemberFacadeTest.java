@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,7 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.StopWatch;
 
+@Slf4j
 @ActiveProfiles("test")
 @SpringBootTest
 class MemberFacadeTest {
@@ -197,9 +200,12 @@ class MemberFacadeTest {
                     LocalDateTime.now(), null));
 
             // when
-            int attemptCount = 20;
+            int attemptCount = 1000;
             ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
             CountDownLatch latch = new CountDownLatch(attemptCount);
+
+            StopWatch stopWatch = new StopWatch("시나리오: 포인트 충전");
+            stopWatch.start("[재시도 100ms마다 5번, 낙관적 락 적용]" + "Task count: " + attemptCount);
 
             AtomicInteger successCount = new AtomicInteger(0);
             AtomicInteger failCount = new AtomicInteger(0);
@@ -218,6 +224,8 @@ class MemberFacadeTest {
 
             latch.await();
             executorService.shutdown();
+
+            stopWatch.stop();
 
             // then
             MemberPoint result = memberPointJpaRepository.findById(memberPoint.getId())

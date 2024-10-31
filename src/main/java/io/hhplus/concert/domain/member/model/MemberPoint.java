@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +39,17 @@ public class MemberPoint {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Version
+    private Long version;
+
+    public MemberPoint(Long id, Long memberId, int pointAmount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.memberId = memberId;
+        this.pointAmount = pointAmount;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
     public static MemberPoint createDefault(Long memberId) {
         return new MemberPoint(null, memberId, 0, LocalDateTime.now(), null);
