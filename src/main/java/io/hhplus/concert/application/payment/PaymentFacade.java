@@ -15,6 +15,7 @@ import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
+import io.hhplus.concert.domain.support.aop.DistributedLock;
 import io.hhplus.concert.domain.support.error.CoreErrorType;
 import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
@@ -36,6 +37,7 @@ public class PaymentFacade {
     private final MemberService memberService;
     private final WaitingQueueService waitingQueueService;
 
+    @DistributedLock(key = "'memberId:' + #memberId")
     @Transactional
     public PaymentInfo payment(Long reservationId, String token, LocalDateTime dateTime) {
         ConcertReservation concertReservation =
@@ -43,7 +45,7 @@ public class PaymentFacade {
 
         Long concertSeatId = concertReservation.getConcertSeatId();
         ConcertSeat concertSeat =
-            concertService.getConcertSeatWithLock(new GetConcertSeat(concertSeatId));
+            concertService.getConcertSeat(new GetConcertSeat(concertSeatId));
         concertSeat.checkExpired(dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
 
         int priceAmount = concertSeat.getPriceAmount();
