@@ -7,7 +7,8 @@ import org.springframework.boot.logging.LogLevel;
 @AllArgsConstructor
 @Getter
 public enum CoreErrorType implements ErrorType {
-    INTERNAL_ERROR(ErrorCode.INTERNAL_ERROR, "Internal Server Error", LogLevel.ERROR);
+    INTERNAL_ERROR(ErrorCode.INTERNAL_ERROR, "Internal Server Error", LogLevel.ERROR),
+    ACQUIRED_LOCK_FAILURE(ErrorCode.BUSINESS_ERROR, "Acquire lock fail", LogLevel.INFO);
 
     @Getter
     @AllArgsConstructor
