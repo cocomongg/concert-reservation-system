@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -454,7 +455,7 @@ class ConcertFacadeIntegrationTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         // when
-        int attemptCount = 30;
+        int attemptCount = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
         CountDownLatch latch = new CountDownLatch(attemptCount);
 

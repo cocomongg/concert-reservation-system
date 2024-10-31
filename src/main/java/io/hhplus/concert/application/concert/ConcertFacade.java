@@ -17,6 +17,7 @@ import io.hhplus.concert.domain.concert.model.ConcertSchedule;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.member.MemberService;
 import io.hhplus.concert.domain.member.model.Member;
+import io.hhplus.concert.domain.support.aop.DistributedLock;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,7 @@ public class ConcertFacade {
             .toList();
     }
 
+    @DistributedLock(key = "'concertSeatId:' + #concertSeatId")
     @Transactional
     public ConcertReservationInfo reserveConcertSeat(Long concertSeatId, Long memberId, LocalDateTime dateTime) {
         Member member = memberService.getMember(memberId);
