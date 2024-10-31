@@ -17,12 +17,15 @@ import io.hhplus.concert.domain.concert.model.ConcertSchedule;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.member.MemberService;
 import io.hhplus.concert.domain.member.model.Member;
+import io.hhplus.concert.domain.support.aop.DistributedLock;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class ConcertFacade {
@@ -54,6 +57,7 @@ public class ConcertFacade {
             .toList();
     }
 
+    @DistributedLock(key = "'concertSeat:' + #concertSeatId")
     @Transactional
     public ConcertReservationInfo reserveConcertSeat(Long concertSeatId, Long memberId, LocalDateTime dateTime) {
         Member member = memberService.getMember(memberId);

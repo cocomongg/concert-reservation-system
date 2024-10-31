@@ -73,7 +73,7 @@ public class ConcertService {
     @Transactional
     public ConcertSeat reserveConcertSeat(ReserveConcertSeat command) {
         ConcertSeat concertSeat =
-            this.getConcertSeatWithLock(new GetConcertSeat(command.getConcertSeatId()));
+            this.getConcertSeat(new GetConcertSeat(command.getConcertSeatId()));
 
         concertSeat.reserve(command.getCurrentTime(), command.getTempReserveDurationMinutes());
 
