@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,7 +35,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.StopWatch;
 
+@Slf4j
 @ActiveProfiles("test")
 @SpringBootTest
 class ConcertFacadeIntegrationTest {
@@ -454,14 +458,22 @@ class ConcertFacadeIntegrationTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         // when
-        int attemptCount = 30;
-        ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
+        int attemptCount = 1000;
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(attemptCount);
 
+        StopWatch stopWatch = new StopWatch("시나리오: 콘서트 좌석 동시 예약");
+        stopWatch.start("[비관적 락 적용]" + "Task count: " + attemptCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failureCount = new AtomicInteger(0);
         for (int i = 0; i < attemptCount; i++) {
             executorService.submit(() -> {
                 try {
                     concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failureCount.incrementAndGet();
                 } finally {
                     latch.countDown();
                 }
@@ -470,6 +482,8 @@ class ConcertFacadeIntegrationTest {
 
         latch.await();
         executorService.shutdown();
+
+        stopWatch.stop();
 
         // then
         List<ConcertReservation> reservations = concertReservationJpaRepository.findAll();

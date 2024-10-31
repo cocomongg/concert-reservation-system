@@ -15,7 +15,7 @@ public interface ConcertSeatJpaRepository extends JpaRepository<ConcertSeat, Lon
 
     List<ConcertSeat> findAllByConcertScheduleId(Long concertScheduleId);
 
-    @Lock(LockModeType.OPTIMISTIC) // 명시적으로 낙관적 락을 사용하도록 설정
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT cs FROM ConcertSeat cs WHERE cs.id = :concertSeatId")
     Optional<ConcertSeat> findByIdWithLock(Long concertSeatId);
 }
