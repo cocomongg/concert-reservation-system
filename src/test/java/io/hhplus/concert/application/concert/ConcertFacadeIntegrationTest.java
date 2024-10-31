@@ -459,14 +459,14 @@ class ConcertFacadeIntegrationTest {
 
         // when
         int attemptCount = 1000;
-        ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(attemptCount);
+
+        StopWatch stopWatch = new StopWatch("시나리오: 콘서트 좌석 동시 예약");
+        stopWatch.start("[Spin Lock 적용]" + "Task count: " + attemptCount);
 
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
-
-        StopWatch stopWatch = new StopWatch(String.format("Task: %d , Redisson pub/sub Lock with 10seconds WaitTimeLimit", attemptCount));
-        stopWatch.start("reserveConcertSeat");
 
         for (int i = 0; i < attemptCount; i++) {
             executorService.submit(() -> {
@@ -474,7 +474,6 @@ class ConcertFacadeIntegrationTest {
                     concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
-//                    log.info("### error: {}", e.getMessage());
                     failCount.incrementAndGet();
                 } finally {
                     latch.countDown();
@@ -486,7 +485,7 @@ class ConcertFacadeIntegrationTest {
         executorService.shutdown();
 
         stopWatch.stop();
-        log.info("### stopWatch: {}", stopWatch.prettyPrint());
+        log.info("{}", stopWatch.prettyPrint());
 
         // then
         assertThat(successCount.get()).isEqualTo(1);

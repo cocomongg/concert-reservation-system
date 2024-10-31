@@ -8,7 +8,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-@Primary
 @RequiredArgsConstructor
 @Component
 public class RedisPubSubLockManager implements DistributedLockManager {

@@ -4,8 +4,10 @@ import io.hhplus.concert.domain.support.lock.DistributedLockManager;
 import io.hhplus.concert.infra.redis.RedisRepository;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+@Primary
 @RequiredArgsConstructor
 @Component
 public class RedisSpinLockManager implements DistributedLockManager {
@@ -15,10 +17,7 @@ public class RedisSpinLockManager implements DistributedLockManager {
 
     @Override
     public boolean tryLock(String key, long waitTime, long leaseTime, TimeUnit timeUnit) {
-        long waitTimeMillis = timeUnit.toMillis(waitTime);
-        long endTime = System.currentTimeMillis() + waitTimeMillis;
-
-        while (System.currentTimeMillis() < endTime) {
+        while (true) {
             boolean acquired = redisRepository.setNx(key, "", leaseTime, timeUnit);
             if (acquired) {
                 return true;
@@ -31,7 +30,6 @@ public class RedisSpinLockManager implements DistributedLockManager {
                 return false;
             }
         }
-        return false;
     }
 
     @Override
