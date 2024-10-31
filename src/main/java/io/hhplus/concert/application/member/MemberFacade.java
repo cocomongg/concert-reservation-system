@@ -4,6 +4,7 @@ import io.hhplus.concert.application.member.MemberPointDto.MemberPointInfo;
 import io.hhplus.concert.domain.member.MemberService;
 import io.hhplus.concert.domain.member.model.Member;
 import io.hhplus.concert.domain.member.model.MemberPoint;
+import io.hhplus.concert.domain.support.aop.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class MemberFacade {
         return new MemberPointInfo(memberPoint);
     }
 
+    @DistributedLock(key = "'memberId:' + #memberId")
     @Transactional
     public MemberPointInfo chargeMemberPoint(Long memberId, int amount) {
         Member member = memberService.getMember(memberId);
