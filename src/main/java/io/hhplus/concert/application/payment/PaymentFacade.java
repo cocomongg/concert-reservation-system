@@ -23,6 +23,9 @@ import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +39,14 @@ public class PaymentFacade {
     private final MemberService memberService;
     private final WaitingQueueService waitingQueueService;
 
+    @Retryable(
+        retryFor = ObjectOptimisticLockingFailureException.class,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 100)
+    )
     @Transactional
     public PaymentInfo payment(Long reservationId, String token, LocalDateTime dateTime) {
+        log.info("#### payment");
         ConcertReservation concertReservation =
             concertService.getConcertReservation(new GetConcertReservation(reservationId));
 

@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.StopWatch;
 
 @Slf4j
 @ActiveProfiles("test")
@@ -411,9 +412,12 @@ class PaymentFacadeIntegrationTest {
                 .build());
 
             // when
-            int attemptCount = 30;
+            int attemptCount = 1000;
             ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
             CountDownLatch latch = new CountDownLatch(attemptCount);
+
+            StopWatch stopWatch = new StopWatch("시나리오: 결제");
+            stopWatch.start("[재시도 100ms마다 5번, 낙관적 락 적용]" + "Task count: " + attemptCount);
 
             AtomicInteger successCount = new AtomicInteger(0);
             AtomicInteger failCount = new AtomicInteger(0);
@@ -433,7 +437,10 @@ class PaymentFacadeIntegrationTest {
             latch.await();
             executorService.shutdown();
 
+            stopWatch.stop();
+
             // then
+            log.info("{}", stopWatch.prettyPrint());
             List<Payment> payments = paymentJpaRepository.findAll();
             assertThat(payments).hasSize(1);
 
@@ -451,8 +458,8 @@ class PaymentFacadeIntegrationTest {
         void should_ExecutePaymentForEachReservation_When_PaymentRequestIsConcurrent()
             throws InterruptedException {
             // given
-            int attemptCount = 10;
-            int seatPrice = 1000;
+            int attemptCount = 1000;
+            int seatPrice = 100;
             Long memberId = 1L;
             LocalDateTime dateTime = LocalDateTime.now();
 
@@ -462,7 +469,7 @@ class PaymentFacadeIntegrationTest {
                 ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
                     .concertScheduleId(1L)
                     .seatNumber(i + 1)
-                    .priceAmount(1000)
+                    .priceAmount(seatPrice)
                     .tempReservedAt(dateTime)
                     .createdAt(LocalDateTime.now())
                     .build());
@@ -495,6 +502,9 @@ class PaymentFacadeIntegrationTest {
             ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
             CountDownLatch latch = new CountDownLatch(attemptCount);
 
+            StopWatch stopWatch = new StopWatch("시나리오: 포인트 사용");
+            stopWatch.start("[재시도 100ms마다 5번, 낙관적 락 적용]" + "Task count: " + attemptCount);
+
             AtomicInteger successCount = new AtomicInteger(0);
             AtomicInteger failCount = new AtomicInteger(0);
             for (int i = 0; i < savedReservationList.size(); i++) {
@@ -504,6 +514,7 @@ class PaymentFacadeIntegrationTest {
                         paymentFacade.payment(reservationId, token, dateTime);
                         successCount.incrementAndGet();
                     } catch (Exception e) {
+                        log.info("#### exception: {}", e.getMessage());
                         failCount.incrementAndGet();
                     } finally {
                         latch.countDown();
@@ -514,7 +525,10 @@ class PaymentFacadeIntegrationTest {
             latch.await();
             executorService.shutdown();
 
+            stopWatch.stop();
+
             // then
+            log.info("{}", stopWatch.prettyPrint());
             assertThat(successCount.get()).isEqualTo(attemptCount);
             assertThat(failCount.get()).isEqualTo(0);
 
