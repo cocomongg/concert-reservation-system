@@ -23,7 +23,7 @@ public class MemberService {
     @Transactional
     public MemberPoint getOrDefaultMemberPoint(Long memberId) {
         Optional<MemberPoint> optionalMemberPoint =
-            memberRepository.getOptionalMemberPointWithLock(memberId);
+            memberRepository.getOptionalMemberPoint(memberId);
 
         return optionalMemberPoint.orElseGet(() ->
             memberRepository.saveMemberPoint(MemberPoint.createDefault(memberId)));
