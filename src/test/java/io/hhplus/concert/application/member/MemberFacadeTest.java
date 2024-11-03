@@ -197,7 +197,7 @@ class MemberFacadeTest {
                     LocalDateTime.now(), null));
 
             // when
-            int attemptCount = 20;
+            int attemptCount = 1000;
             ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
             CountDownLatch latch = new CountDownLatch(attemptCount);
 

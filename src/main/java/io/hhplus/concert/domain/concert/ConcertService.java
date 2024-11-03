@@ -30,7 +30,7 @@ public class ConcertService {
     }
 
     @Transactional(readOnly = true)
-    public ConcertSeat getConcertSeatWithLock(GetConcertSeat query) {
+    public ConcertSeat getConcertSeatWithOptimisticLock(GetConcertSeat query) {
         return concertRepository.getConcertSeatWithLock(query);
     }
 
@@ -73,7 +73,7 @@ public class ConcertService {
     @Transactional
     public ConcertSeat reserveConcertSeat(ReserveConcertSeat command) {
         ConcertSeat concertSeat =
-            this.getConcertSeat(new GetConcertSeat(command.getConcertSeatId()));
+            this.getConcertSeatWithOptimisticLock(new GetConcertSeat(command.getConcertSeatId()));
 
         concertSeat.reserve(command.getCurrentTime(), command.getTempReserveDurationMinutes());
 

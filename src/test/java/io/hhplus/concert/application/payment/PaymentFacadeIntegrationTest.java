@@ -411,7 +411,7 @@ class PaymentFacadeIntegrationTest {
                 .build());
 
             // when
-            int attemptCount = 30;
+            int attemptCount = 1000;
             ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
             CountDownLatch latch = new CountDownLatch(attemptCount);
 

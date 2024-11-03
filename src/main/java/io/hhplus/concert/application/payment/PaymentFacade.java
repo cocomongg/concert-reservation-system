@@ -15,8 +15,6 @@ import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
-import io.hhplus.concert.domain.support.error.CoreErrorType;
-import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
@@ -43,7 +41,7 @@ public class PaymentFacade {
 
         Long concertSeatId = concertReservation.getConcertSeatId();
         ConcertSeat concertSeat =
-            concertService.getConcertSeatWithLock(new GetConcertSeat(concertSeatId));
+            concertService.getConcertSeatWithOptimisticLock(new GetConcertSeat(concertSeatId));
         concertSeat.checkExpired(dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
 
         int priceAmount = concertSeat.getPriceAmount();
