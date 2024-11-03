@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,7 +35,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.StopWatch;
 
+@Slf4j
 @ActiveProfiles("test")
 @SpringBootTest
 class ConcertFacadeIntegrationTest {
@@ -454,14 +458,24 @@ class ConcertFacadeIntegrationTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         // when
-        int attemptCount = 30;
+        int attemptCount = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);
         CountDownLatch latch = new CountDownLatch(attemptCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        StopWatch stopWatch = new StopWatch(String.format("Task: %d , Redisson pub/sub Lock with 10seconds WaitTimeLimit", attemptCount));
+        stopWatch.start("reserveConcertSeat");
 
         for (int i = 0; i < attemptCount; i++) {
             executorService.submit(() -> {
                 try {
                     concertFacade.reserveConcertSeat(concertSeatId, memberId, dateTime);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+//                    log.info("### error: {}", e.getMessage());
+                    failCount.incrementAndGet();
                 } finally {
                     latch.countDown();
                 }
@@ -471,7 +485,12 @@ class ConcertFacadeIntegrationTest {
         latch.await();
         executorService.shutdown();
 
+        stopWatch.stop();
+        log.info("### stopWatch: {}", stopWatch.prettyPrint());
+
         // then
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failCount.get()).isEqualTo(attemptCount - 1);
         List<ConcertReservation> reservations = concertReservationJpaRepository.findAll();
         assertThat(reservations).hasSize(1);
 
