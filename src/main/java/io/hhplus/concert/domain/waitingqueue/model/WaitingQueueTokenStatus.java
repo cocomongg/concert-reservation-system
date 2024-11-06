@@ -1,6 +1,6 @@
 package io.hhplus.concert.domain.waitingqueue.model;
 
-public enum WaitingQueueStatus {
+public enum WaitingQueueTokenStatus {
     WAITING,
     ACTIVE,
     EXPIRED

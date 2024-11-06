@@ -13,19 +13,19 @@ import static org.mockito.Mockito.when;
 
 import io.hhplus.concert.domain.support.error.CoreErrorType;
 import io.hhplus.concert.domain.support.error.CoreException;
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetRemainingWaitTimeSeconds;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenInfo;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenStatus;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,109 +39,59 @@ class WaitingQueueServiceTest {
     @InjectMocks
     private WaitingQueueService waitingQueueService;
 
-    @DisplayName("createWaitingQueue() 테스트")
+    @DisplayName("getRemainingWaitTimeSeconds() 테스트")
     @Nested
-    class CreateWaitingQueueTest {
-        @DisplayName("활성화 대기열 토큰이 최대 활성화 수 보다 적다면 활성화 토큰을 생성한다.")
+    class GetRemainingWaitTimeSecondsTest {
+        @DisplayName("대기 순서가 0이라면 남은 대기 시간은 활성화 간격이다.")
         @Test
-        void should_CreateActiveWaitingQueue_When_ActiveCountLessThanMaxActiveCount() {
+        void should_ReturnActivationIntervalSeconds_When_WaitingOrderIsZero() {
             // given
-            String token = "tokenValue";
-            LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
-            int maxActiveCount = 10;
-            long activeCount = 5L;
-            CreateWaitingQueue command = new CreateWaitingQueue(token, maxActiveCount, expireAt);
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
-
-            WaitingQueue activeWaitingQueue = WaitingQueue.createActiveWaitingQueue(
-                command.getToken(), command.getExpireAt());
+            Long waitingOrder = 0L;
+            int activationBatchSize = 10;
+            int activationIntervalSeconds = 60;
+            GetRemainingWaitTimeSeconds query =
+                new GetRemainingWaitTimeSeconds(waitingOrder, activationBatchSize, activationIntervalSeconds);
 
             // when
-            waitingQueueService.createWaitingQueue(command);
+            Long remainingWaitTimeSeconds = waitingQueueService.getRemainingWaitTimeSeconds(query);
 
             // then
-            ArgumentCaptor<WaitingQueue> captor = ArgumentCaptor.forClass(WaitingQueue.class);
-            verify(waitingQueueRepository).saveWaitingQueue(captor.capture());
-            WaitingQueue result = captor.getValue();
-
-            assertThat(result.getToken()).isEqualTo(activeWaitingQueue.getToken());
-            assertThat(result.getStatus()).isEqualTo(activeWaitingQueue.getStatus());
-            assertThat(result.getExpireAt()).isEqualTo(activeWaitingQueue.getExpireAt());
+            assertThat(remainingWaitTimeSeconds).isEqualTo(activationIntervalSeconds);
         }
 
-        @DisplayName("활성화 대기열이 최대 인원보다 많다면 일반 대기열을 생성한다.")
+        @DisplayName("대기 순서가 0이 아니고, 활성화 배치 사이즈보다 작다면 남은 대기 시간은 활성화 간격이다.")
         @Test
-        void should_CreateWaitingQueue_When_ActiveCountGreaterThanMaxActiveCount() {
+        void should_ReturnRemainingWaitTimeSeconds_When_WaitingOrderIsNotZero() {
             // given
-            String token = "tokenValue";
-            LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
-            int maxActiveCount = 10;
-            long activeCount = 15L;
-            CreateWaitingQueue command = new CreateWaitingQueue(token, maxActiveCount, expireAt);
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
-
-            WaitingQueue waitingQueue = WaitingQueue.createWaitingQueue(command.getToken());
+            Long waitingOrder = 10L;
+            int activationBatchSize = 10;
+            int activationIntervalSeconds = 60;
+            GetRemainingWaitTimeSeconds query =
+                new GetRemainingWaitTimeSeconds(waitingOrder, activationBatchSize, activationIntervalSeconds);
 
             // when
-            waitingQueueService.createWaitingQueue(command);
+            Long remainingWaitTimeSeconds = waitingQueueService.getRemainingWaitTimeSeconds(query);
 
             // then
-            ArgumentCaptor<WaitingQueue> captor = ArgumentCaptor.forClass(WaitingQueue.class);
-            verify(waitingQueueRepository).saveWaitingQueue(captor.capture());
-            WaitingQueue result = captor.getValue();
-
-            assertThat(result.getToken()).isEqualTo(waitingQueue.getToken());
-            assertThat(result.getStatus()).isEqualTo(waitingQueue.getStatus());
-            assertThat(result.getExpireAt()).isEqualTo(waitingQueue.getExpireAt());
+            assertThat(remainingWaitTimeSeconds).isEqualTo(activationIntervalSeconds);
         }
-    }
 
-    @DisplayName("getWaitingQueueWithOrder() 테스트")
-    @Nested
-    class GetWaitingQueueWithOrderTest {
-        @DisplayName("조회 조건에 해당하는 waitingQueue가 대기 상태가 아니라면 CoreException이 발생한다.")
+        @DisplayName("대기 순서가 0이 아니고, 활성화 배치 사이즈보다 크다면 남은 대기 시간은 (현재 순서 / 활성화 배치 사이즈 * 활성화 간격) 이다.")
         @Test
-        void should_ThrowCoreException_When_StatusIsNotWaiting() {
+        void should_ReturnRemainingWaitTimeSeconds_When_WaitingOrderIsNotZeroAndGreaterThanActivationBatchSize() {
             // given
-            String token = "tokenValue";
-            GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
-            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.ACTIVE,
-                LocalDateTime.now(), LocalDateTime.now(), null);
-
-            when(waitingQueueRepository.getWaitingQueue(query))
-                .thenReturn(waitingQueue);
-
-            // when, then
-            assertThatThrownBy(() -> waitingQueueService.getWaitingQueueWithOrder(query))
-                .isInstanceOf(CoreException.class)
-                .hasMessage(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING.getMessage());
-        }
-        
-        @DisplayName("조회 조건에 해당하는 waitingQueue와 대기순번을 조회하여 반환한다.")
-        @Test
-        void should_ReturnWaitingQueueWithOrder_When_Found() {
-            // given
-            String token = "tokenValue";
-            GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
-            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.WAITING,
-                LocalDateTime.now(), LocalDateTime.now(), null);
-
-            when(waitingQueueRepository.getWaitingQueue(query))
-                .thenReturn(waitingQueue);
-
-            when(waitingQueueRepository.countWaitingOrder(waitingQueue.getId()))
-                .thenReturn(10L);
+            Long waitingOrder = 20L;
+            int activationBatchSize = 10;
+            int activationIntervalSeconds = 60;
+            GetRemainingWaitTimeSeconds query =
+                new GetRemainingWaitTimeSeconds(waitingOrder, activationBatchSize, activationIntervalSeconds);
 
             // when
-            WaitingQueueWithOrder result = waitingQueueService.getWaitingQueueWithOrder(query);
+            Long remainingWaitTimeSeconds = waitingQueueService.getRemainingWaitTimeSeconds(query);
 
             // then
-            assertThat(result.getWaitingQueue()).isEqualTo(waitingQueue);
-            assertThat(result.getWaitingOrder()).isEqualTo(10L);
+            assertThat(remainingWaitTimeSeconds)
+                .isEqualTo(waitingOrder / activationBatchSize * activationIntervalSeconds);
         }
     }
 
@@ -172,11 +122,11 @@ class WaitingQueueServiceTest {
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();
             CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
-            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.WAITING,
-                currentTime.plusMinutes(10), LocalDateTime.now(), null);
+            WaitingQueueTokenInfo tokenInfo =
+                new WaitingQueueTokenInfo(token, WaitingQueueTokenStatus.WAITING, currentTime.plusMinutes(10));
 
             when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
-                .thenReturn(waitingQueue);
+                .thenReturn(tokenInfo);
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
@@ -191,11 +141,11 @@ class WaitingQueueServiceTest {
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();
             CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
-            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.ACTIVE,
-                currentTime.minusMinutes(10), LocalDateTime.now(), null);
+            WaitingQueueTokenInfo tokenInfo =
+                new WaitingQueueTokenInfo(token, WaitingQueueTokenStatus.WAITING, currentTime.plusMinutes(10));
 
             when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
-                .thenReturn(waitingQueue);
+                .thenReturn(tokenInfo);
 
             // when, then
             assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
@@ -210,11 +160,11 @@ class WaitingQueueServiceTest {
             String token = "tokenValue";
             LocalDateTime currentTime = LocalDateTime.now();
             CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
-            WaitingQueue waitingQueue = new WaitingQueue(1L, token, WaitingQueueStatus.ACTIVE,
-                currentTime.plusMinutes(10), LocalDateTime.now(), null);
+            WaitingQueueTokenInfo tokenInfo =
+                new WaitingQueueTokenInfo(token, WaitingQueueTokenStatus.ACTIVE, currentTime.plusMinutes(10));
 
             when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
-                .thenReturn(waitingQueue);
+                .thenReturn(tokenInfo);
 
             // when, then
             assertThatCode(() -> waitingQueueService.checkTokenActivate(query))
@@ -225,67 +175,99 @@ class WaitingQueueServiceTest {
     @DisplayName("activateToken() 테스트")
     @Nested
     class ActivateTokenTest {
-        @DisplayName("활성화할 인원이 0이라면 아무일도 일어나지 않고, return된다.")
-        @Test
-        void should_Nothing_When_countToActivateIsZero() {
-            // given
-            int maxActiveCount = 10;
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(10L);
-
-            // when
-            waitingQueueService.activateToken(maxActiveCount);
-
-            // then
-            verify(waitingQueueRepository, never()).getOldestWaitedQueueIds(anyInt());
-            verify(waitingQueueRepository, never()).activateWaitingQueues(anyList());
-        }
 
         @DisplayName("대기중인 사용자가 없다면 activateWaitingQueues함수가 호출되지 않는다.")
         @Test
         void should_NotCallActivateWaitingQueues_When_WaitingQueueCountEmpty() {
             // given
             int maxActiveCount = 10;
-            long activeCount = 5L;
 
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
-
-            when(waitingQueueRepository.getOldestWaitedQueueIds(anyInt()))
+            when(waitingQueueRepository.getOldestWaitingTokens(anyInt()))
                 .thenReturn(List.of());
 
             // when
             waitingQueueService.activateToken(maxActiveCount);
 
             // then
-            verify(waitingQueueRepository, times(1)).getOldestWaitedQueueIds(anyInt());
-            verify(waitingQueueRepository, never()).activateWaitingQueues(anyList());
+            verify(waitingQueueRepository, times(1)).getOldestWaitingTokens(anyInt());
+            verify(waitingQueueRepository, never()).activateWaitingTokens(anyList());
         }
 
-        @DisplayName("활성화 대상 개수가 1 이상이고, 대기중인 사용자가 있다면 activateWaitingQueues함수가 호출된다.")
+        @DisplayName("대기중인 사용자가 있다면 activateWaitingQueues함수가 호출된다.")
         @Test
         void should_CallActivateWaitingQueues_When_WaitedQueueExist() {
             // given
-            int maxActiveCount = 6;
-            long activeCount = 3L;
-            int countToActivate = maxActiveCount - (int) activeCount;
+            int countToActivate = 3;
+            List<WaitingQueueTokenInfo> waitingQueueTokenInfoList = new ArrayList<>();
 
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
+            for(int i = 0; i < countToActivate; i++) {
+                WaitingQueueTokenInfo tokenInfo = new WaitingQueueTokenInfo("token" + i,
+                    WaitingQueueTokenStatus.WAITING, LocalDateTime.now());
 
-            List<Long> waitingQueueIds = List.of(1L, 2L, 3L);
-            when(waitingQueueRepository.getOldestWaitedQueueIds(countToActivate))
-                .thenReturn(waitingQueueIds);
+                waitingQueueTokenInfoList.add(tokenInfo);
+            }
+            when(waitingQueueRepository.getOldestWaitingTokens(countToActivate))
+                .thenReturn(waitingQueueTokenInfoList);
+
+            List<String> tokensToActive = waitingQueueTokenInfoList.stream()
+                .map(WaitingQueueTokenInfo::getToken)
+                .collect(Collectors.toList());
 
             // when
-            waitingQueueService.activateToken(maxActiveCount);
+            waitingQueueService.activateToken(countToActivate);
 
             // then
             verify(waitingQueueRepository, times(1))
-                .getOldestWaitedQueueIds(countToActivate);
+                .activateWaitingTokens(tokensToActive);
+        }
+    }
+
+    @DisplayName("expireTokens() 테스트")
+    @Nested
+    class ExpireTokensTest {
+        @DisplayName("만료될 대기열이 없다면 expireActiveTokens함수가 호출되지 않는다.")
+        @Test
+        void should_NotCallExpireActiveTokens_When_NoWaitingQueueToExpire() {
+            // given
+            LocalDateTime currentTime = LocalDateTime.now();
+
+            when(waitingQueueRepository.getActiveTokensToExpire(currentTime))
+                .thenReturn(List.of());
+
+            // when
+            waitingQueueService.expireTokens(currentTime);
+
+            // then
+            verify(waitingQueueRepository, never()).expireActiveTokens(anyList());
+        }
+
+        @DisplayName("만료될 대기열이 있다면 expireActiveTokens함수가 호출된다.")
+        @Test
+        void should_CallExpireActiveTokens_When_WaitingQueueToExpireExist() {
+            // given
+            LocalDateTime currentTime = LocalDateTime.now();
+            int countToExpire = 3;
+            List<WaitingQueueTokenInfo> waitingQueueTokenInfoList = new ArrayList<>();
+
+            for(int i = 0; i < countToExpire; i++) {
+                WaitingQueueTokenInfo tokenInfo = new WaitingQueueTokenInfo("token" + i,
+                    WaitingQueueTokenStatus.ACTIVE, LocalDateTime.now());
+
+                waitingQueueTokenInfoList.add(tokenInfo);
+            }
+            when(waitingQueueRepository.getActiveTokensToExpire(currentTime))
+                .thenReturn(waitingQueueTokenInfoList);
+
+            List<String> tokensToExpire = waitingQueueTokenInfoList.stream()
+                .map(WaitingQueueTokenInfo::getToken)
+                .collect(Collectors.toList());
+
+            // when
+            waitingQueueService.expireTokens(currentTime);
+
+            // then
             verify(waitingQueueRepository, times(1))
-                .activateWaitingQueues(waitingQueueIds);
+                .expireActiveTokens(tokensToExpire);
         }
     }
 }

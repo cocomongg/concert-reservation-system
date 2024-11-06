@@ -1,12 +1,13 @@
 package io.hhplus.concert.domain.waitingqueue;
 
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.CreateWaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetRemainingWaitTimeSeconds;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenInfo;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,72 +19,71 @@ public class WaitingQueueService {
     private final WaitingQueueRepository waitingQueueRepository;
 
     @Transactional
-    public WaitingQueue createWaitingQueue(CreateWaitingQueue command) {
-        Long activeCount = this.getActiveCount();
-
-        WaitingQueue waitingQueue = WaitingQueue.createWaitingQueue(command.getToken());
-        if(activeCount < command.getMaxActiveCount()) {
-            waitingQueue = WaitingQueue.createActiveWaitingQueue(command.getToken(), command.getExpireAt());
-        }
-
-        return waitingQueueRepository.saveWaitingQueue(waitingQueue);
+    public WaitingQueueTokenInfo insertWaitingQueue(InsertWaitingQueue command) {
+        return waitingQueueRepository.insertWaitingQueue(command);
     }
 
     @Transactional(readOnly = true)
-    public WaitingQueue getWaitingQueue(GetWaitingQueueCommonQuery query) {
-        return waitingQueueRepository.getWaitingQueue(query);
+    public WaitingQueueTokenInfo getWaitingToken(GetWaitingQueueCommonQuery query) {
+        WaitingQueueTokenInfo tokenInfo = waitingQueueRepository.getWaitingQueue(query);
+        tokenInfo.checkNotWaiting();
+
+        return tokenInfo;
     }
 
     @Transactional(readOnly = true)
-    public WaitingQueueWithOrder getWaitingQueueWithOrder(GetWaitingQueueCommonQuery query) {
-        WaitingQueue waitingQueue = this.getWaitingQueue(query);
-        waitingQueue.checkNotWaiting();
+    public Long getWaitingTokenOrder(GetWaitingQueueCommonQuery query) {
+        return waitingQueueRepository.getWaitingTokenOrder(query);
+    }
 
-        Long order = waitingQueueRepository.countWaitingOrder(waitingQueue.getId());
+    public Long getRemainingWaitTimeSeconds(GetRemainingWaitTimeSeconds query) {
+        long activateStep = query.getWaitingOrder() / query.getActivationBatchSize();
+        int activationIntervalSeconds = query.getActivationIntervalSeconds();
 
-        return new WaitingQueueWithOrder(waitingQueue, order);
+        return activateStep == 0 ? activationIntervalSeconds : activateStep * activationIntervalSeconds;
     }
 
     @Transactional(readOnly = true)
     public void checkTokenActivate(CheckTokenActivate query) {
-        WaitingQueue waitingQueue =
-            this.getWaitingQueue(new GetWaitingQueueCommonQuery(query.getToken()));
+        WaitingQueueTokenInfo tokenInfo =
+            waitingQueueRepository.getWaitingQueue(new GetWaitingQueueCommonQuery(query.getToken()));
 
-        waitingQueue.checkActivated(query.getCurrentTime());
-    }
-
-    @Transactional(readOnly = true)
-    public Long getActiveCount() {
-        return waitingQueueRepository.getActiveCount();
+        tokenInfo.checkActivated(query.getCurrentTime());
     }
 
     @Transactional
-    public int activateToken(int maxActiveCount) {
-        Long activeCount = this.getActiveCount();
-        int countToActivate = maxActiveCount - activeCount.intValue();
+    public Long activateToken(int limit) {
+        List<WaitingQueueTokenInfo> waitingTokens =
+            waitingQueueRepository.getOldestWaitingTokens(limit);
 
-        if(countToActivate <= 0) {
-            return countToActivate;
+        if(waitingTokens.isEmpty()) {
+            return 0L;
         }
 
-        List<Long> waitingQueueIds =
-            waitingQueueRepository.getOldestWaitedQueueIds(countToActivate);
+        List<String> tokensToActive = waitingTokens.stream()
+            .map(WaitingQueueTokenInfo::getToken)
+            .collect(Collectors.toList());
 
-        if(waitingQueueIds.isEmpty()) {
-            return countToActivate;
-        }
-
-        return waitingQueueRepository.activateWaitingQueues(waitingQueueIds);
+        return waitingQueueRepository.activateWaitingTokens(tokensToActive);
     }
 
     @Transactional
-    public int expireTokens(LocalDateTime currentTime) {
-        List<Long> expireTargetIds = waitingQueueRepository.getExpireTargetIds(currentTime);
+    public Long expireTokens(LocalDateTime currentTime) {
+        List<WaitingQueueTokenInfo> activeTokens = waitingQueueRepository.getActiveTokensToExpire(currentTime);
 
-        if(expireTargetIds.isEmpty()) {
-            return 0;
+        if(activeTokens.isEmpty()) {
+            return 0L;
         }
 
-        return waitingQueueRepository.expireWaitingQueues(expireTargetIds);
+        List<String> tokensToExpire = activeTokens.stream()
+            .map(WaitingQueueTokenInfo::getToken)
+            .collect(Collectors.toList());
+
+        return waitingQueueRepository.expireActiveTokens(tokensToExpire);
+    }
+
+    @Transactional
+    public void expireToken(GetWaitingQueueCommonQuery query) {
+        waitingQueueRepository.expireActiveTokens(List.of(query.getToken()));
     }
 }

@@ -1,25 +1,26 @@
 package io.hhplus.concert.domain.waitingqueue;
 
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenInfo;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface WaitingQueueRepository {
 
-    WaitingQueue saveWaitingQueue(WaitingQueue waitingQueue);
+    WaitingQueueTokenInfo insertWaitingQueue(InsertWaitingQueue command);
 
-    WaitingQueue getWaitingQueue(GetWaitingQueueCommonQuery query);
+    WaitingQueueTokenInfo getWaitingQueue(GetWaitingQueueCommonQuery query);
+
+    Long getWaitingTokenOrder(GetWaitingQueueCommonQuery query);
 
     Long countWaitingOrder(Long queueId);
 
-    Long getActiveCount();
+    List<WaitingQueueTokenInfo> getOldestWaitingTokens(int limit);
 
-    List<Long> getOldestWaitedQueueIds(int limit);
+    Long activateWaitingTokens(List<String> tokens);
 
-    List<Long> getExpireTargetIds(LocalDateTime now);
+    List<WaitingQueueTokenInfo> getActiveTokensToExpire(LocalDateTime now);
 
-    int activateWaitingQueues(List<Long> ids);
-
-    int expireWaitingQueues(List<Long> ids);
+    Long expireActiveTokens(List<String> tokens);
 }

@@ -8,7 +8,6 @@ import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.member.MemberService;
-import io.hhplus.concert.domain.member.model.MemberPoint;
 import io.hhplus.concert.domain.payment.PaymentService;
 import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePayment;
 import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
@@ -54,9 +53,7 @@ public class PaymentFacade {
         concertReservation.completeReservation(dateTime);
 
         // 대기열 만료 처리
-        WaitingQueue waitingQueue = waitingQueueService.getWaitingQueue(
-            new GetWaitingQueueCommonQuery(token));
-        waitingQueue.expire();
+        waitingQueueService.expireToken(new GetWaitingQueueCommonQuery(token));
 
         // 결제 정보 저장
         Payment payment = paymentService.createPayment(new CreatePayment(memberId, reservationId,

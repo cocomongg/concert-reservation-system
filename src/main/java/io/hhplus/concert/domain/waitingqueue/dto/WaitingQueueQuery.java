@@ -34,4 +34,25 @@ public class WaitingQueueQuery {
             this.currentTime = currentTime;
         }
     }
+
+    @Getter
+    public static class GetRemainingWaitTimeSeconds {
+        private final Long waitingOrder;
+        private final int activationBatchSize;
+        private final int activationIntervalSeconds;
+
+        public GetRemainingWaitTimeSeconds(Long waitingOrder, int activationBatchSize, int activationIntervalSeconds) {
+            if(Objects.isNull(waitingOrder)) {
+                throw new IllegalArgumentException("Invalid input data for GetRemainingWaitTimeSeconds.");
+            }
+
+            if(activationBatchSize <= 0 || activationIntervalSeconds <= 0) {
+                throw new IllegalArgumentException("Invalid input data for GetRemainingWaitTimeSeconds.");
+            }
+
+            this.waitingOrder = waitingOrder;
+            this.activationBatchSize = activationBatchSize;
+            this.activationIntervalSeconds = activationIntervalSeconds;
+        }
+    }
 }
