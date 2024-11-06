@@ -46,24 +46,6 @@ class WaitingQueueServiceIntegrationTest {
     @DisplayName("createWaitingQueue 테스트")
     @Nested
     class CreateWaitingQueueTest {
-        @DisplayName("대기열 토큰의 활성화 상태 개수가 최대 활성화 상태 개수보다 작으면 활성화 상태인 대기열 토큰을 생성한다.")
-        @Test
-        void should_CreateActiveWaitingQueue_When_ActiveCountIsLessThanMaxActiveCount() {
-            // given
-            String token = "token";
-            int maxCount = 10;
-            LocalDateTime expireAt = LocalDateTime.now().plusDays(1);
-            CreateWaitingQueue command = new CreateWaitingQueue(token, maxCount, expireAt);
-
-            // when
-            WaitingQueue result = waitingQueueService.createWaitingQueue(command);
-
-            // then
-            assertThat(result.getToken()).isEqualTo(token);
-            assertThat(result.getStatus()).isEqualTo(WaitingQueueStatus.ACTIVE);
-            assertThat(result.getExpireAt()).isEqualTo(expireAt);
-        }
-
         @DisplayName("대기열 토큰의 활성화 상태 개수가 최대 활성화 상태 개수보다 크거나 같으면 대기 상태인 대기열 토큰을 생성한다.")
         @Test
         void should_CreateWaitingQueue_When_ActiveCountIsGreaterThanOrEqualToMaxActiveCount() {
@@ -71,7 +53,7 @@ class WaitingQueueServiceIntegrationTest {
             String token = "token";
             int maxCount = 3;
             LocalDateTime expireAt = LocalDateTime.now().plusDays(1);
-            CreateWaitingQueue command = new CreateWaitingQueue(token, maxCount, expireAt);
+            CreateWaitingQueue command = new CreateWaitingQueue(token, expireAt);
 
             WaitingQueue waitingQueue1 = WaitingQueue.builder()
                 .token("token1")
@@ -94,7 +76,7 @@ class WaitingQueueServiceIntegrationTest {
             waitingQueueJpaRepository.saveAll(List.of(waitingQueue1, waitingQueue2, waitingQueue3));
 
             // when
-            WaitingQueue result = waitingQueueService.createWaitingQueue(command);
+            WaitingQueue result = waitingQueueService.insertWaitingQueue(command);
 
             // then
             assertThat(result.getToken()).isEqualTo(token);
@@ -285,41 +267,6 @@ class WaitingQueueServiceIntegrationTest {
         }
     }
 
-    @DisplayName("getActiveCount 테스트")
-    @Nested
-    class GetActiveCountTest {
-        @DisplayName("대기열의 활성화 상태 개수를 구한다.")
-        @Test
-        void should_ReturnActiveCount() {
-            // given
-            WaitingQueue waitingQueue1 = WaitingQueue.builder()
-                .token("token1")
-                .status(WaitingQueueStatus.WAITING)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-            WaitingQueue waitingQueue2 = WaitingQueue.builder()
-                .token("token2")
-                .status(WaitingQueueStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-            WaitingQueue waitingQueue3 = WaitingQueue.builder()
-                .token("token3")
-                .status(WaitingQueueStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-            waitingQueueJpaRepository.saveAll(List.of(waitingQueue1, waitingQueue2, waitingQueue3));
-
-            // when
-            Long activeCount = waitingQueueService.getActiveCount();
-
-            // then
-            assertThat(activeCount).isEqualTo(2L);
-        }
-    }
-    
     @DisplayName("activateToken 테스트")
     @Nested
     class ActivateTokenTest {
@@ -353,7 +300,7 @@ class WaitingQueueServiceIntegrationTest {
             int countToActivate = 0;
             
             // when
-            waitingQueueService.activateToken(countToActivate + 5);
+            waitingQueueService.activateToken(countToActivate);
         
             // then
             List<WaitingQueue> waitingQueues = waitingQueueJpaRepository.findAll();
@@ -407,9 +354,9 @@ class WaitingQueueServiceIntegrationTest {
             assertThat(activeCount).isEqualTo(givenActiveCount);
         }
 
-        @DisplayName("활성화 대상 개수가 1 이상이고, 대기중인 WaitingQueue가 있을 때 가장 오래된 waiting의 상태가 active로 변경된다.")
+        @DisplayName("대기중인 WaitingQueue가 있을 때 가장 기다린 waiting의 상태가 active로 변경된다.")
         @Test
-        void should_ActivateOldestWaiting_When_WaitingExist() {
+        void should_ActivateToken_When_WaitingExist() {
             // given
             int givenWaitingCount = 5;
             int givenActiveCount = 5;
@@ -439,7 +386,7 @@ class WaitingQueueServiceIntegrationTest {
             int countToActivate = 3;
 
             // when
-            waitingQueueService.activateToken(givenActiveCount + countToActivate);
+            waitingQueueService.activateToken(countToActivate);
 
             // then
             List<WaitingQueue> waitingQueues = waitingQueueJpaRepository.findAll();

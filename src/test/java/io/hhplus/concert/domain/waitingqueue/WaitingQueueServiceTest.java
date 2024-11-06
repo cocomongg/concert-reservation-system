@@ -39,64 +39,29 @@ class WaitingQueueServiceTest {
     @InjectMocks
     private WaitingQueueService waitingQueueService;
 
-    @DisplayName("createWaitingQueue() 테스트")
+    @DisplayName("insertWaitingQueue() 테스트")
     @Nested
-    class CreateWaitingQueueTest {
-        @DisplayName("활성화 대기열 토큰이 최대 활성화 수 보다 적다면 활성화 토큰을 생성한다.")
+    class InsertWaitingQueueTest {
+        @DisplayName("입력된 토큰을 대기열에 삽입한다.")
         @Test
-        void should_CreateActiveWaitingQueue_When_ActiveCountLessThanMaxActiveCount() {
+        void should_InsertWaitingQueue_When_InputToken() {
             // given
             String token = "tokenValue";
-            LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
-            int maxActiveCount = 10;
-            long activeCount = 5L;
-            CreateWaitingQueue command = new CreateWaitingQueue(token, maxActiveCount, expireAt);
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
-
-            WaitingQueue activeWaitingQueue = WaitingQueue.createActiveWaitingQueue(
-                command.getToken(), command.getExpireAt());
-
-            // when
-            waitingQueueService.createWaitingQueue(command);
-
-            // then
-            ArgumentCaptor<WaitingQueue> captor = ArgumentCaptor.forClass(WaitingQueue.class);
-            verify(waitingQueueRepository).saveWaitingQueue(captor.capture());
-            WaitingQueue result = captor.getValue();
-
-            assertThat(result.getToken()).isEqualTo(activeWaitingQueue.getToken());
-            assertThat(result.getStatus()).isEqualTo(activeWaitingQueue.getStatus());
-            assertThat(result.getExpireAt()).isEqualTo(activeWaitingQueue.getExpireAt());
-        }
-
-        @DisplayName("활성화 대기열이 최대 인원보다 많다면 일반 대기열을 생성한다.")
-        @Test
-        void should_CreateWaitingQueue_When_ActiveCountGreaterThanMaxActiveCount() {
-            // given
-            String token = "tokenValue";
-            LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
-            int maxActiveCount = 10;
-            long activeCount = 15L;
-            CreateWaitingQueue command = new CreateWaitingQueue(token, maxActiveCount, expireAt);
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
+            LocalDateTime now = LocalDateTime.now();
+            CreateWaitingQueue command = new CreateWaitingQueue(token, now);
 
             WaitingQueue waitingQueue = WaitingQueue.createWaitingQueue(command.getToken());
 
             // when
-            waitingQueueService.createWaitingQueue(command);
+            waitingQueueService.insertWaitingQueue(command);
 
             // then
             ArgumentCaptor<WaitingQueue> captor = ArgumentCaptor.forClass(WaitingQueue.class);
-            verify(waitingQueueRepository).saveWaitingQueue(captor.capture());
+            verify(waitingQueueRepository).insertWaitingQueue(captor.capture());
             WaitingQueue result = captor.getValue();
 
             assertThat(result.getToken()).isEqualTo(waitingQueue.getToken());
             assertThat(result.getStatus()).isEqualTo(waitingQueue.getStatus());
-            assertThat(result.getExpireAt()).isEqualTo(waitingQueue.getExpireAt());
         }
     }
 
@@ -225,32 +190,12 @@ class WaitingQueueServiceTest {
     @DisplayName("activateToken() 테스트")
     @Nested
     class ActivateTokenTest {
-        @DisplayName("활성화할 인원이 0이라면 아무일도 일어나지 않고, return된다.")
-        @Test
-        void should_Nothing_When_countToActivateIsZero() {
-            // given
-            int maxActiveCount = 10;
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(10L);
-
-            // when
-            waitingQueueService.activateToken(maxActiveCount);
-
-            // then
-            verify(waitingQueueRepository, never()).getOldestWaitedQueueIds(anyInt());
-            verify(waitingQueueRepository, never()).activateWaitingQueues(anyList());
-        }
 
         @DisplayName("대기중인 사용자가 없다면 activateWaitingQueues함수가 호출되지 않는다.")
         @Test
         void should_NotCallActivateWaitingQueues_When_WaitingQueueCountEmpty() {
             // given
             int maxActiveCount = 10;
-            long activeCount = 5L;
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
 
             when(waitingQueueRepository.getOldestWaitedQueueIds(anyInt()))
                 .thenReturn(List.of());
@@ -263,23 +208,18 @@ class WaitingQueueServiceTest {
             verify(waitingQueueRepository, never()).activateWaitingQueues(anyList());
         }
 
-        @DisplayName("활성화 대상 개수가 1 이상이고, 대기중인 사용자가 있다면 activateWaitingQueues함수가 호출된다.")
+        @DisplayName("대기중인 사용자가 있다면 activateWaitingQueues함수가 호출된다.")
         @Test
         void should_CallActivateWaitingQueues_When_WaitedQueueExist() {
             // given
-            int maxActiveCount = 6;
-            long activeCount = 3L;
-            int countToActivate = maxActiveCount - (int) activeCount;
-
-            when(waitingQueueRepository.getActiveCount())
-                .thenReturn(activeCount);
+            int countToActivate = 3;
 
             List<Long> waitingQueueIds = List.of(1L, 2L, 3L);
             when(waitingQueueRepository.getOldestWaitedQueueIds(countToActivate))
                 .thenReturn(waitingQueueIds);
 
             // when
-            waitingQueueService.activateToken(maxActiveCount);
+            waitingQueueService.activateToken(countToActivate);
 
             // then
             verify(waitingQueueRepository, times(1))

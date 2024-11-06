@@ -21,15 +21,11 @@ public class WaitingQueueFacade {
     private final WaitingQueueService waitingQueueService;
     private final WaitingQueueTokenGenerator waitingQueueTokenGenerator;
 
-    public WaitingQueueInfo generateWaitingQueueToken() {
+    public WaitingQueueInfo issueWaitingToken() {
         String token = waitingQueueTokenGenerator.generateWaitingQueueToken();
-        LocalDateTime expireAt = LocalDateTime.now()
-            .plusMinutes(ServicePolicy.WAITING_QUEUE_EXPIRED_MINUTES);
+        CreateWaitingQueue command = new CreateWaitingQueue(token, LocalDateTime.now());
 
-        CreateWaitingQueue command =
-            new CreateWaitingQueue(token, ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT, expireAt);
-
-        WaitingQueue waitingQueue = waitingQueueService.createWaitingQueue(command);
+        WaitingQueue waitingQueue = waitingQueueService.insertWaitingQueue(command);
         return new WaitingQueueInfo(waitingQueue);
     }
 
@@ -41,14 +37,12 @@ public class WaitingQueueFacade {
         return new WaitingQueueWithOrderInfo(waitingQueueWithOrder);
     }
 
-    // todo: call by interceptor
     public void checkTokenActivate(String token, LocalDateTime currentTime) {
         CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
         waitingQueueService.checkTokenActivate(query);
     }
 
-    //todo: call by activate scheduler
-    public int activateOldestWaitedQueues() {
+    public int activateWaitingToken() {
         return waitingQueueService.activateToken(ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT);
     }
 

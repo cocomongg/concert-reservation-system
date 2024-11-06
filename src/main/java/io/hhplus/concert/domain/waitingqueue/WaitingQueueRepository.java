@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface WaitingQueueRepository {
 
-    WaitingQueue saveWaitingQueue(WaitingQueue waitingQueue);
+    WaitingQueue insertWaitingQueue(WaitingQueue waitingQueue);
 
     WaitingQueue getWaitingQueue(GetWaitingQueueCommonQuery query);
 

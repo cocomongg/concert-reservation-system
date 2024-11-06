@@ -7,6 +7,7 @@ import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQue
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +20,7 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     private final WaitingQueueJpaRepository waitingQueueJpaRepository;
 
     @Override
-    public WaitingQueue saveWaitingQueue(WaitingQueue waitingQueue) {
+    public WaitingQueue insertWaitingQueue(WaitingQueue waitingQueue) {
         return waitingQueueJpaRepository.save(waitingQueue);
     }
 
@@ -41,6 +42,10 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
 
     @Override
     public List<Long> getOldestWaitedQueueIds(int limit) {
+        if(limit == 0) {
+            return new ArrayList<>();
+        }
+
         return waitingQueueJpaRepository.findOldestWaitedIds(WaitingQueueStatus.WAITING,
             PageRequest.of(0, limit));
     }

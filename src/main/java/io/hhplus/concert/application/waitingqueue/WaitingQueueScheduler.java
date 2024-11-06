@@ -1,8 +1,9 @@
 package io.hhplus.concert.application.waitingqueue;
 
+import static io.hhplus.concert.domain.common.ServicePolicy.WAITING_QUEUE_ACTIVATE_INTERVAL;
+
 import io.hhplus.concert.domain.support.error.CoreErrorType;
 import io.hhplus.concert.domain.support.error.CoreException;
-import io.hhplus.concert.domain.support.error.ErrorType;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +17,12 @@ public class WaitingQueueScheduler {
 
     private final WaitingQueueFacade waitingQueueFacade;
 
-    @Scheduled(fixedRate = 60_000) // 1min
+    @Scheduled(fixedRate = WAITING_QUEUE_ACTIVATE_INTERVAL) // 1min
     public void activateOldestWaitingQueues() {
         log.info("activate token - st");
         int activatedCount = 0;
         try {
-            activatedCount = waitingQueueFacade.activateOldestWaitedQueues();
+            activatedCount = waitingQueueFacade.activateWaitingToken();
         } catch (Exception e) {
             throw new CoreException(CoreErrorType.INTERNAL_ERROR, e);
         }

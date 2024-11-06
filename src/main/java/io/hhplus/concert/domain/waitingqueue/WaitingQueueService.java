@@ -18,15 +18,9 @@ public class WaitingQueueService {
     private final WaitingQueueRepository waitingQueueRepository;
 
     @Transactional
-    public WaitingQueue createWaitingQueue(CreateWaitingQueue command) {
-        Long activeCount = this.getActiveCount();
-
+    public WaitingQueue insertWaitingQueue(CreateWaitingQueue command) {
         WaitingQueue waitingQueue = WaitingQueue.createWaitingQueue(command.getToken());
-        if(activeCount < command.getMaxActiveCount()) {
-            waitingQueue = WaitingQueue.createActiveWaitingQueue(command.getToken(), command.getExpireAt());
-        }
-
-        return waitingQueueRepository.saveWaitingQueue(waitingQueue);
+        return waitingQueueRepository.insertWaitingQueue(waitingQueue);
     }
 
     @Transactional(readOnly = true)
@@ -52,25 +46,13 @@ public class WaitingQueueService {
         waitingQueue.checkActivated(query.getCurrentTime());
     }
 
-    @Transactional(readOnly = true)
-    public Long getActiveCount() {
-        return waitingQueueRepository.getActiveCount();
-    }
-
     @Transactional
-    public int activateToken(int maxActiveCount) {
-        Long activeCount = this.getActiveCount();
-        int countToActivate = maxActiveCount - activeCount.intValue();
-
-        if(countToActivate <= 0) {
-            return countToActivate;
-        }
-
+    public int activateToken(int limit) {
         List<Long> waitingQueueIds =
-            waitingQueueRepository.getOldestWaitedQueueIds(countToActivate);
+            waitingQueueRepository.getOldestWaitedQueueIds(limit);
 
         if(waitingQueueIds.isEmpty()) {
-            return countToActivate;
+            return 0;
         }
 
         return waitingQueueRepository.activateWaitingQueues(waitingQueueIds);
