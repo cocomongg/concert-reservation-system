@@ -15,7 +15,7 @@ import io.hhplus.concert.domain.payment.model.PaymentStatus;
 import io.hhplus.concert.domain.support.error.CoreErrorType;
 import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenStatus;
 import io.hhplus.concert.infra.db.concert.ConcertReservationJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertSeatJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
@@ -210,7 +210,7 @@ class PaymentFacadeIntegrationTest {
 
             waitingQueueJpaRepository.save(WaitingQueue.builder()
                 .token(token)
-                .status(WaitingQueueStatus.ACTIVE)
+                .status(WaitingQueueTokenStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build());
 
@@ -255,7 +255,7 @@ class PaymentFacadeIntegrationTest {
 
             waitingQueueJpaRepository.save(WaitingQueue.builder()
                 .token(token)
-                .status(WaitingQueueStatus.ACTIVE)
+                .status(WaitingQueueTokenStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build());
 
@@ -308,7 +308,7 @@ class PaymentFacadeIntegrationTest {
 
             waitingQueueJpaRepository.save(WaitingQueue.builder()
                 .token(token)
-                .status(WaitingQueueStatus.ACTIVE)
+                .status(WaitingQueueTokenStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build());
 
@@ -317,7 +317,7 @@ class PaymentFacadeIntegrationTest {
 
             // then
             WaitingQueue updatedWaitingQueue = waitingQueueJpaRepository.findByToken(token).orElseThrow();
-            assertThat(updatedWaitingQueue.getStatus()).isEqualTo(WaitingQueueStatus.EXPIRED);
+            assertThat(updatedWaitingQueue.getStatus()).isEqualTo(WaitingQueueTokenStatus.EXPIRED);
         }
 
         @DisplayName("결제가 정상적으로 이뤄지면 Payment과 PaymentHistory가 생성된다.")
@@ -353,7 +353,7 @@ class PaymentFacadeIntegrationTest {
 
             waitingQueueJpaRepository.save(WaitingQueue.builder()
                 .token(token)
-                .status(WaitingQueueStatus.ACTIVE)
+                .status(WaitingQueueTokenStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build());
 
@@ -406,7 +406,7 @@ class PaymentFacadeIntegrationTest {
 
             waitingQueueJpaRepository.save(WaitingQueue.builder()
                 .token(token)
-                .status(WaitingQueueStatus.ACTIVE)
+                .status(WaitingQueueTokenStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build());
 
@@ -487,7 +487,7 @@ class PaymentFacadeIntegrationTest {
 
             waitingQueueJpaRepository.save(WaitingQueue.builder()
                 .token(token)
-                .status(WaitingQueueStatus.ACTIVE)
+                .status(WaitingQueueTokenStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build());
 

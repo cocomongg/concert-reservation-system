@@ -34,7 +34,7 @@ public class WaitingQueue {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    WaitingQueueStatus status;
+    WaitingQueueTokenStatus status;
 
     @Column(name = "expired_at")
     private LocalDateTime expireAt;
@@ -45,43 +45,7 @@ public class WaitingQueue {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public static WaitingQueue createActiveWaitingQueue(String token, LocalDateTime expireAt) {
-        return WaitingQueue.builder()
-            .token(token)
-            .status(WaitingQueueStatus.ACTIVE)
-            .expireAt(expireAt)
-            .createdAt(LocalDateTime.now())
-            .build();
-    }
-
-    public static WaitingQueue createWaitingQueue(String token) {
-        return WaitingQueue.builder()
-            .token(token)
-            .status(WaitingQueueStatus.WAITING)
-            .createdAt(LocalDateTime.now())
-            .build();
-    }
-
-    public void checkNotWaiting() {
-        if(!WaitingQueueStatus.WAITING.equals(this.status)) {
-            throw new CoreException(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING);
-        }
-    }
-
-    public void checkActivated(LocalDateTime currentTime) {
-        boolean isActive = WaitingQueueStatus.ACTIVE.equals(this.status);
-        if(!isActive) {
-            throw new CoreException(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE);
-        }
-
-        boolean isExpired = this.expireAt.isBefore(currentTime);
-        if(isExpired) {
-            throw new CoreException(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE);
-        }
-    }
-
-    public void expire() {
-        this.status = WaitingQueueStatus.EXPIRED;
-        this.updatedAt = LocalDateTime.now();
+    public WaitingQueueTokenInfo toTokenInfo() {
+        return new WaitingQueueTokenInfo(this.token, this.status, this.expireAt);
     }
 }

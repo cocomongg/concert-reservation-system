@@ -1,7 +1,7 @@
 package io.hhplus.concert.interfaces.api.waitingqueue;
 
-import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueInfo;
-import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueWithOrderInfo;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenInfo;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingTokenWithOrderInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -14,27 +14,26 @@ public class WaitingQueueResponse {
     @Builder
     @AllArgsConstructor
     public static class GetQueue {
-        @Schema(description = "사용자의 대기열 순서")
+        @Schema(description = "토큰 값")
+        private final String token;
+
+        @Schema(description = "현재 토큰의 상태값")
+        private final String tokenStatus;
+
+        @Schema(description = "사용자의 대기 순서")
         private final Long order;
 
-        @Schema(description = "사용자 앞에 남은 대기자 수")
-        private final Long remainingWaitingCount;
+        @Schema(description = "사용자의 남은 예상 대기 시간")
+        private final Long remainingWaitTimeSeconds;
 
-        @Schema(description = "현재 사용자의 대기열에서의 상태값")
-        private final String queueStatus;
-
-        @Schema(description = "대기열 토큰 만료 일시")
-        private final LocalDateTime expiredAt;
-
-        public static GetQueue from(WaitingQueueWithOrderInfo info) {
-            WaitingQueueInfo waitingQueueInfo = info.getWaitingQueueInfo();
-            Long order = info.getOrder();
+        public static GetQueue from(WaitingTokenWithOrderInfo info) {
+            WaitingQueueTokenInfo tokenInfo = info.getTokenInfo();
 
             return GetQueue.builder()
-                .order(waitingQueueInfo.getId())
-                .remainingWaitingCount(order)
-                .queueStatus(waitingQueueInfo.getStatus().toString())
-                .expiredAt(waitingQueueInfo.getExpireAt())
+                .token(tokenInfo.getToken())
+                .tokenStatus(tokenInfo.getStatus().toString())
+                .order(info.getOrder())
+                .remainingWaitTimeSeconds(info.getRemainingWaitTimeSeconds())
                 .build();
         }
     }
@@ -55,10 +54,10 @@ public class WaitingQueueResponse {
         @Schema(description = "대기열 토큰 만료 일시")
         private final LocalDateTime expiredAt;
 
-        public static CreateQueueToken from(WaitingQueueInfo info) {
+        public static CreateQueueToken from(WaitingQueueTokenInfo info) {
             return CreateQueueToken.builder()
                 .token(info.getToken())
-                .order(info.getId())
+//                .order(info.getOrder())
                 .queueStatus(info.getStatus().toString())
                 .expiredAt(info.getExpireAt())
                 .build();

@@ -3,12 +3,15 @@ package io.hhplus.concert.infra.db.waitingqueue;
 import io.hhplus.concert.domain.support.error.CoreErrorType;
 import io.hhplus.concert.domain.support.error.CoreException;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueRepository;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenStatus;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenInfo;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
@@ -20,50 +23,70 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     private final WaitingQueueJpaRepository waitingQueueJpaRepository;
 
     @Override
-    public WaitingQueue insertWaitingQueue(WaitingQueue waitingQueue) {
-        return waitingQueueJpaRepository.save(waitingQueue);
+    public WaitingQueueTokenInfo insertWaitingQueue(InsertWaitingQueue command) {
+        WaitingQueue waitingQueue = WaitingQueue.builder()
+            .token(command.getToken())
+            .status(WaitingQueueTokenStatus.WAITING)
+            .createdAt(command.getNow())
+            .build();
+
+        WaitingQueue savedWaitingQueue = waitingQueueJpaRepository.save(waitingQueue);
+
+        return savedWaitingQueue.toTokenInfo();
     }
 
     @Override
-    public WaitingQueue getWaitingQueue(GetWaitingQueueCommonQuery query) {
-        return waitingQueueJpaRepository.findByToken(query.getToken())
+    public WaitingQueueTokenInfo getWaitingQueue(GetWaitingQueueCommonQuery query) {
+        WaitingQueue waitingQueue = waitingQueueJpaRepository.findByToken(query.getToken())
             .orElseThrow(() -> new CoreException(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND));
+        return waitingQueue.toTokenInfo();
+    }
+
+    @Override
+    public Long getWaitingTokenOrder(GetWaitingQueueCommonQuery query) {
+        WaitingQueue waitingQueue = waitingQueueJpaRepository.findByToken(query.getToken())
+            .orElseThrow(() -> new CoreException(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND));
+
+        return this.countWaitingOrder(waitingQueue.getId());
     }
 
     @Override
     public Long countWaitingOrder(Long queueId) {
-        return waitingQueueJpaRepository.countByIdLessThanEqualAndStatus(queueId, WaitingQueueStatus.WAITING);
+        return waitingQueueJpaRepository.countByIdLessThanEqualAndStatus(queueId, WaitingQueueTokenStatus.WAITING);
     }
 
     @Override
-    public Long getActiveCount() {
-        return waitingQueueJpaRepository.countByStatus(WaitingQueueStatus.ACTIVE);
-    }
-
-    @Override
-    public List<Long> getOldestWaitedQueueIds(int limit) {
-        if(limit == 0) {
+    public List<WaitingQueueTokenInfo> getOldestWaitingTokens(int limit) {
+        if(limit <= 0) {
             return new ArrayList<>();
         }
 
-        return waitingQueueJpaRepository.findOldestWaitedIds(WaitingQueueStatus.WAITING,
-            PageRequest.of(0, limit));
+        List<WaitingQueue> waitingQueues = waitingQueueJpaRepository.findOldestWaitedIds(
+            WaitingQueueTokenStatus.WAITING, PageRequest.of(0, limit));
+
+        return waitingQueues.stream()
+            .map(WaitingQueue::toTokenInfo)
+            .collect(Collectors.toList());
     }
 
     @Override
-    public List<Long> getExpireTargetIds(LocalDateTime currentTime) {
-        return waitingQueueJpaRepository.findExpireTargetIds(currentTime);
-    }
-
-    @Override
-    public int activateWaitingQueues(List<Long> ids) {
-        return waitingQueueJpaRepository.updateStatusByIds(ids, WaitingQueueStatus.ACTIVE,
+    public Long activateWaitingTokens(List<String> tokens) {
+        return (long) waitingQueueJpaRepository.updateStatusByTokens(tokens, WaitingQueueTokenStatus.ACTIVE,
             LocalDateTime.now());
     }
 
     @Override
-    public int expireWaitingQueues(List<Long> ids) {
-        return waitingQueueJpaRepository.updateStatusByIds(ids, WaitingQueueStatus.EXPIRED,
+    public List<WaitingQueueTokenInfo> getActiveTokensToExpire(LocalDateTime currentTime) {
+        List<WaitingQueue> waitingQueues = waitingQueueJpaRepository.findExpireTargetIds(currentTime);
+
+        return waitingQueues.stream()
+            .map(WaitingQueue::toTokenInfo)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Long expireActiveTokens(List<String> tokens) {
+        return (long) waitingQueueJpaRepository.updateStatusByTokens(tokens, WaitingQueueTokenStatus.EXPIRED,
             LocalDateTime.now());
     }
 }

@@ -1,7 +1,7 @@
 package io.hhplus.concert.infra.db.waitingqueue;
 
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,17 +16,15 @@ public interface WaitingQueueJpaRepository extends JpaRepository<WaitingQueue, L
 
     Optional<WaitingQueue> findByToken(String token);
 
-    Long countByIdLessThanEqualAndStatus(Long id, WaitingQueueStatus status);
+    Long countByIdLessThanEqualAndStatus(Long id, WaitingQueueTokenStatus status);
 
-    Long countByStatus(WaitingQueueStatus status);
+    @Query("SELECT wq FROM WaitingQueue wq WHERE wq.status = :status ORDER BY wq.id ASC")
+    List<WaitingQueue> findOldestWaitedIds(WaitingQueueTokenStatus status, Pageable pageable);
 
-    @Query("SELECT wq.id FROM WaitingQueue wq WHERE wq.status = :status ORDER BY wq.id ASC")
-    List<Long> findOldestWaitedIds(WaitingQueueStatus status, Pageable pageable);
-
-    @Query("SELECT wq.id FROM WaitingQueue wq WHERE wq.status = 'ACTIVE' and wq.expireAt < :now")
-    List<Long> findExpireTargetIds(LocalDateTime now);
+    @Query("SELECT wq FROM WaitingQueue wq WHERE wq.status = 'ACTIVE' and wq.expireAt < :now")
+    List<WaitingQueue> findExpireTargetIds(LocalDateTime now);
 
     @Modifying
-    @Query("UPDATE WaitingQueue wq SET wq.status = :status, wq.updatedAt = :now WHERE wq.id IN :ids")
-    int updateStatusByIds(List<Long> ids, WaitingQueueStatus status, LocalDateTime now);
+    @Query("UPDATE WaitingQueue wq SET wq.status = :status, wq.updatedAt = :now WHERE wq.token IN :tokens")
+    int updateStatusByTokens(List<String> tokens, WaitingQueueTokenStatus status, LocalDateTime now);
 }

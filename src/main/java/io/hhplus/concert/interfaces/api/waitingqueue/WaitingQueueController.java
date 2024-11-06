@@ -1,8 +1,8 @@
 package io.hhplus.concert.interfaces.api.waitingqueue;
 
-import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueInfo;
-import io.hhplus.concert.application.waitingqueue.WaitingQueueDto.WaitingQueueWithOrderInfo;
 import io.hhplus.concert.application.waitingqueue.WaitingQueueFacade;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenInfo;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingTokenWithOrderInfo;
 import io.hhplus.concert.interfaces.api.common.response.ApiResult;
 import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueRequest.CreateQueue;
 import io.hhplus.concert.interfaces.api.waitingqueue.WaitingQueueResponse.CreateQueueToken;
@@ -24,19 +24,18 @@ public class WaitingQueueController implements WaitingQueueControllerDocs {
 
     @GetMapping("/tokens/order-info")
     public ApiResult<GetQueue> GetQueue(@RequestHeader("X-QUEUE-TOKEN") String token) {
-        WaitingQueueWithOrderInfo waitingQueueWithOrder =
-            waitingQueueFacade.getWaitingQueueWithOrder(token);
+        WaitingTokenWithOrderInfo waitingTokenWithOrderInfo =
+            waitingQueueFacade.getWaitingTokenWithOrderInfo(token);
 
-        GetQueue response = GetQueue.from(waitingQueueWithOrder);
+        GetQueue response = GetQueue.from(waitingTokenWithOrderInfo);
         return ApiResult.OK(response);
     }
 
     @PostMapping("/tokens")
     public ApiResult<CreateQueueToken> createQueue(@RequestBody CreateQueue request) {
-        WaitingQueueInfo waitingQueueWithOrder =
-            waitingQueueFacade.issueWaitingToken();
+        WaitingQueueTokenInfo tokenInfo = waitingQueueFacade.issueWaitingToken();
 
-        CreateQueueToken response = CreateQueueToken.from(waitingQueueWithOrder);
+        CreateQueueToken response = CreateQueueToken.from(tokenInfo);
         return ApiResult.OK(response);
     }
 }

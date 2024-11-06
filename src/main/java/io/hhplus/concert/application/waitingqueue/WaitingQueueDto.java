@@ -1,7 +1,7 @@
 package io.hhplus.concert.application.waitingqueue;
 
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueStatus;
+import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenStatus;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueWithOrder;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -14,7 +14,7 @@ public class WaitingQueueDto {
     public static class WaitingQueueInfo {
         private final Long id;
         private final String token;
-        private final WaitingQueueStatus status;
+        private final WaitingQueueTokenStatus status;
         private final LocalDateTime expireAt;
         private final LocalDateTime createdAt;
 

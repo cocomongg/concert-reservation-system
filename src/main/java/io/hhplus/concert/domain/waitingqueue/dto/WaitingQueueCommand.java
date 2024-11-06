@@ -8,7 +8,7 @@ public class WaitingQueueCommand {
 
     @Getter
     @AllArgsConstructor
-    public static class CreateWaitingQueue {
+    public static class InsertWaitingQueue {
         private final String token;
         private final LocalDateTime now;
     }
