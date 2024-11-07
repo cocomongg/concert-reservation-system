@@ -95,7 +95,7 @@ class WaitingQueueServiceIntegrationTest {
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery("token");
 
             // when, then
-            assertThatThrownBy(() -> waitingQueueService.getWaitingToken(query))
+            assertThatThrownBy(() -> waitingQueueService.getWaitingQueueToken(query))
                 .isInstanceOf(CoreException.class)
                 .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
         }
@@ -115,7 +115,7 @@ class WaitingQueueServiceIntegrationTest {
                 new GetWaitingQueueCommonQuery(givenWaitingQueue.getToken());
 
             // when, then
-            assertThatThrownBy(() -> waitingQueueService.getWaitingToken(query))
+            assertThatThrownBy(() -> waitingQueueService.getWaitingQueueToken(query))
                 .isInstanceOf(CoreException.class)
                 .hasMessage(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING.getMessage());
         }
@@ -135,7 +135,7 @@ class WaitingQueueServiceIntegrationTest {
                 new GetWaitingQueueCommonQuery(givenWaitingQueue.getToken());
 
             // when
-            WaitingQueueTokenInfo result = waitingQueueService.getWaitingToken(query);
+            WaitingQueueTokenInfo result = waitingQueueService.getWaitingQueueToken(query);
 
             // then
             assertThat(result.getToken()).isEqualTo(givenWaitingQueue.getToken());

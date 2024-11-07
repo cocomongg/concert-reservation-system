@@ -30,7 +30,7 @@ public class WaitingQueueFacade {
 
     public WaitingTokenWithOrderInfo getWaitingTokenWithOrderInfo(String token) {
         GetWaitingQueueCommonQuery tokenQuery = new GetWaitingQueueCommonQuery(token);
-        WaitingQueueTokenInfo tokenInfo = waitingQueueService.getWaitingToken(tokenQuery);
+        WaitingQueueTokenInfo tokenInfo = waitingQueueService.getWaitingQueueToken(tokenQuery);
         Long waitingOrder = waitingQueueService.getWaitingTokenOrder(tokenQuery);
 
         GetRemainingWaitTimeSeconds remainingWaitTimeQuery = new GetRemainingWaitTimeSeconds(

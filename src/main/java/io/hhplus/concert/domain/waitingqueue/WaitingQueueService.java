@@ -24,11 +24,8 @@ public class WaitingQueueService {
     }
 
     @Transactional(readOnly = true)
-    public WaitingQueueTokenInfo getWaitingToken(GetWaitingQueueCommonQuery query) {
-        WaitingQueueTokenInfo tokenInfo = waitingQueueRepository.getWaitingQueue(query);
-        tokenInfo.checkNotWaiting();
-
-        return tokenInfo;
+    public WaitingQueueTokenInfo getWaitingQueueToken(GetWaitingQueueCommonQuery query) {
+        return waitingQueueRepository.getWaitingQueueToken(query);
     }
 
     @Transactional(readOnly = true)
@@ -46,7 +43,7 @@ public class WaitingQueueService {
     @Transactional(readOnly = true)
     public void checkTokenActivate(CheckTokenActivate query) {
         WaitingQueueTokenInfo tokenInfo =
-            waitingQueueRepository.getWaitingQueue(new GetWaitingQueueCommonQuery(query.getToken()));
+            waitingQueueRepository.getWaitingQueueToken(new GetWaitingQueueCommonQuery(query.getToken()));
 
         tokenInfo.checkActivated(query.getCurrentTime());
     }

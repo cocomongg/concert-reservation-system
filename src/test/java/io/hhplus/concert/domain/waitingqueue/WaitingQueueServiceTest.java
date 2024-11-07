@@ -106,7 +106,7 @@ class WaitingQueueServiceTest {
             LocalDateTime currentTime = LocalDateTime.now();
             CheckTokenActivate query = new CheckTokenActivate(token, currentTime);
 
-            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+            when(waitingQueueRepository.getWaitingQueueToken(any(GetWaitingQueueCommonQuery.class)))
                 .thenThrow(new CoreException(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND));
 
             // when, then
@@ -125,7 +125,7 @@ class WaitingQueueServiceTest {
             WaitingQueueTokenInfo tokenInfo =
                 new WaitingQueueTokenInfo(token, WaitingQueueTokenStatus.WAITING, currentTime.plusMinutes(10));
 
-            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+            when(waitingQueueRepository.getWaitingQueueToken(any(GetWaitingQueueCommonQuery.class)))
                 .thenReturn(tokenInfo);
 
             // when, then
@@ -144,7 +144,7 @@ class WaitingQueueServiceTest {
             WaitingQueueTokenInfo tokenInfo =
                 new WaitingQueueTokenInfo(token, WaitingQueueTokenStatus.WAITING, currentTime.plusMinutes(10));
 
-            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+            when(waitingQueueRepository.getWaitingQueueToken(any(GetWaitingQueueCommonQuery.class)))
                 .thenReturn(tokenInfo);
 
             // when, then
@@ -163,7 +163,7 @@ class WaitingQueueServiceTest {
             WaitingQueueTokenInfo tokenInfo =
                 new WaitingQueueTokenInfo(token, WaitingQueueTokenStatus.ACTIVE, currentTime.plusMinutes(10));
 
-            when(waitingQueueRepository.getWaitingQueue(any(GetWaitingQueueCommonQuery.class)))
+            when(waitingQueueRepository.getWaitingQueueToken(any(GetWaitingQueueCommonQuery.class)))
                 .thenReturn(tokenInfo);
 
             // when, then

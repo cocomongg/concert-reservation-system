@@ -36,7 +36,7 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     }
 
     @Override
-    public WaitingQueueTokenInfo getWaitingQueue(GetWaitingQueueCommonQuery query) {
+    public WaitingQueueTokenInfo getWaitingQueueToken(GetWaitingQueueCommonQuery query) {
         WaitingQueue waitingQueue = waitingQueueJpaRepository.findByToken(query.getToken())
             .orElseThrow(() -> new CoreException(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND));
         return waitingQueue.toTokenInfo();
@@ -47,12 +47,8 @@ public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
         WaitingQueue waitingQueue = waitingQueueJpaRepository.findByToken(query.getToken())
             .orElseThrow(() -> new CoreException(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND));
 
-        return this.countWaitingOrder(waitingQueue.getId());
-    }
-
-    @Override
-    public Long countWaitingOrder(Long queueId) {
-        return waitingQueueJpaRepository.countByIdLessThanEqualAndStatus(queueId, WaitingQueueTokenStatus.WAITING);
+        return waitingQueueJpaRepository.countByIdLessThanEqualAndStatus(waitingQueue.getId(),
+            WaitingQueueTokenStatus.WAITING);
     }
 
     @Override

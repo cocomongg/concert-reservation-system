@@ -10,11 +10,9 @@ public interface WaitingQueueRepository {
 
     WaitingQueueTokenInfo insertWaitingQueue(InsertWaitingQueue command);
 
-    WaitingQueueTokenInfo getWaitingQueue(GetWaitingQueueCommonQuery query);
+    WaitingQueueTokenInfo getWaitingQueueToken(GetWaitingQueueCommonQuery query);
 
     Long getWaitingTokenOrder(GetWaitingQueueCommonQuery query);
-
-    Long countWaitingOrder(Long queueId);
 
     List<WaitingQueueTokenInfo> getOldestWaitingTokens(int limit);
 
