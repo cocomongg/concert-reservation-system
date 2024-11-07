@@ -1,7 +1,7 @@
 package io.hhplus.concert.infra.redis.lock;
 
 import io.hhplus.concert.domain.support.lock.DistributedLockManager;
-import io.hhplus.concert.infra.redis.RedisRepository;
+import io.hhplus.concert.infra.redis.repository.RedisRepository;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
