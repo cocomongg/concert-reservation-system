@@ -1,6 +1,7 @@
 package io.hhplus.concert.domain.waitingqueue.dto;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,5 +12,13 @@ public class WaitingQueueCommand {
     public static class InsertWaitingQueue {
         private final String token;
         private final LocalDateTime now;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ActivateWaitingTokens {
+        private final int limit;
+        private final long expireTime;
+        private final TimeUnit timeUnit;
     }
 }
