@@ -15,7 +15,7 @@ public class FilterConfig {
             new FilterRegistrationBean<>();
 
         filterRegistrationBean.setFilter(new WaitingQueueTokenFilter());
-        filterRegistrationBean.addUrlPatterns("/api/v1/queues/tokens/order-info", "/api/v1/concerts/*",
+        filterRegistrationBean.addUrlPatterns("/api/v1/queues/tokens/order-info", "/api/v1/concerts/**",
             "/api/v1/members/*", "/api/v1/payments/*");
 
         return filterRegistrationBean;
