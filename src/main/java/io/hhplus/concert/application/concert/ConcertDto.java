@@ -1,5 +1,6 @@
 package io.hhplus.concert.application.concert;
 
+import io.hhplus.concert.domain.concert.model.Concert;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
 import io.hhplus.concert.domain.concert.model.ConcertSchedule;
@@ -10,6 +11,24 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 public class ConcertDto {
+
+    @Getter
+    @AllArgsConstructor
+    public static class ConcertInfo {
+        private final Long id;
+        private final String title;
+        private final String description;
+        private final LocalDateTime createdAt;
+        private final LocalDateTime updatedAt;
+
+        public ConcertInfo(Concert concert) {
+            this.id = concert.getId();
+            this.title = concert.getTitle();
+            this.description = concert.getDescription();
+            this.createdAt = concert.getCreatedAt();
+            this.updatedAt = concert.getUpdatedAt();
+        }
+    }
 
     @Getter
     @AllArgsConstructor

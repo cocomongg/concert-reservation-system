@@ -26,6 +26,11 @@ public class ConcertRepositoryImpl implements ConcertRepository {
     private final ConcertReservationJpaRepository concertReservationJpaRepository;
 
     @Override
+    public List<Concert> getConcerts() {
+        return concertJpaRepository.findAll();
+    }
+
+    @Override
     public ConcertSeat getConcertSeat(GetConcertSeat query) {
         return concertSeatJpaRepository.findById(query.getConcertSeatId())
             .orElseThrow(() -> new CoreException(CoreErrorType.Concert.CONCERT_SEAT_NOT_FOUND));

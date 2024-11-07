@@ -13,6 +13,8 @@ import java.util.List;
 
 public interface ConcertRepository {
 
+    List<Concert> getConcerts();
+
     ConcertSeat getConcertSeat(GetConcertSeat query);
 
     ConcertSeat getConcertSeatWithLock(GetConcertSeat query);

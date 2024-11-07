@@ -1,5 +1,6 @@
 package io.hhplus.concert.application.concert;
 
+import io.hhplus.concert.application.concert.ConcertDto.ConcertInfo;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertReservationInfo;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertScheduleInfo;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertSeatInfo;
@@ -32,6 +33,14 @@ public class ConcertFacade {
 
     private final ConcertService concertService;
     private final MemberService memberService;
+
+    public List<ConcertInfo> getConcerts() {
+        List<Concert> concerts = concertService.getConcerts();
+
+        return concerts.stream()
+            .map(ConcertDto.ConcertInfo::new)
+            .toList();
+    }
 
     public List<ConcertScheduleInfo> getReservableConcertSchedules(Long concertId, LocalDateTime currentTime) {
         Concert concert = concertService.getConcert(new GetConcert(concertId));

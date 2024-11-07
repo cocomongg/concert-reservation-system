@@ -25,6 +25,11 @@ public class ConcertService {
     private final ConcertRepository concertRepository;
 
     @Transactional(readOnly = true)
+    public List<Concert> getConcerts() {
+        return concertRepository.getConcerts();
+    }
+
+    @Transactional(readOnly = true)
     public ConcertSeat getConcertSeat(GetConcertSeat query) {
         return concertRepository.getConcertSeat(query);
     }

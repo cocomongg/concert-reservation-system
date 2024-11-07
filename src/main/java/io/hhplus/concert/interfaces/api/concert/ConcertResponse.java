@@ -1,5 +1,6 @@
 package io.hhplus.concert.interfaces.api.concert;
 
+import io.hhplus.concert.application.concert.ConcertDto.ConcertInfo;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertReservationInfo;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertScheduleInfo;
 import io.hhplus.concert.application.concert.ConcertDto.ConcertSeatInfo;
@@ -26,6 +27,13 @@ public class ConcertResponse {
 
         @Schema(description = "콘서트 생성일시")
         private LocalDateTime createdAt;
+
+        public ConcertItem(ConcertInfo concertInfo) {
+            this.concertId = concertInfo.getId();
+            this.concertTitle = concertInfo.getTitle();
+            this.concertDescription = concertInfo.getDescription();
+            this.createdAt = concertInfo.getCreatedAt();
+        }
     }
 
     @Getter
