@@ -14,14 +14,15 @@ import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
 import io.hhplus.concert.domain.support.error.CoreErrorType;
 import io.hhplus.concert.domain.support.error.CoreException;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenStatus;
+import io.hhplus.concert.domain.waitingqueue.model.TokenMeta;
 import io.hhplus.concert.infra.db.concert.ConcertReservationJpaRepository;
 import io.hhplus.concert.infra.db.concert.ConcertSeatJpaRepository;
 import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
 import io.hhplus.concert.infra.db.payment.PaymentJpaRepository;
-import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
+import io.hhplus.concert.infra.redis.repository.RedisRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
+import io.hhplus.concert.support.RedisCleanUp;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ class PaymentFacadeIntegrationTest {
     private MemberPointJpaRepository memberPointJpaRepository;
 
     @Autowired
-    private WaitingQueueJpaRepository waitingQueueJpaRepository;
+    private RedisRepository redisRepository;
 
     @Autowired
     private ConcertSeatJpaRepository concertSeatJpaRepository;
@@ -64,9 +65,13 @@ class PaymentFacadeIntegrationTest {
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
+    @Autowired
+    private RedisCleanUp redisCleanUp;
+
     @AfterEach
     public void teardown() {
         databaseCleanUp.execute();
+        redisCleanUp.execute();
     }
 
     @DisplayName("payment() 테스트")
@@ -208,11 +213,9 @@ class PaymentFacadeIntegrationTest {
                 .pointAmount(20000)
                 .build());
 
-            waitingQueueJpaRepository.save(WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build());
+            redisRepository.addSet("active_queue", token);
+            redisRepository.setStringValue("active_queue:" + token,
+                new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
             // when
             paymentFacade.payment(reservationId, token, dateTime);
@@ -253,11 +256,9 @@ class PaymentFacadeIntegrationTest {
                 .pointAmount(20000)
                 .build());
 
-            waitingQueueJpaRepository.save(WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build());
+            redisRepository.addSet("active_queue", token);
+            redisRepository.setStringValue("active_queue:" + token,
+                new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
             // when
             paymentFacade.payment(reservationId, token, dateTime);
@@ -306,18 +307,20 @@ class PaymentFacadeIntegrationTest {
                 .pointAmount(20000)
                 .build());
 
-            waitingQueueJpaRepository.save(WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build());
+            redisRepository.addSet("active_queue", token);
+            redisRepository.setStringValue("active_queue:" + token,
+                new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
             // when
             paymentFacade.payment(reservationId, token, dateTime);
 
             // then
-            WaitingQueue updatedWaitingQueue = waitingQueueJpaRepository.findByToken(token).orElseThrow();
-            assertThat(updatedWaitingQueue.getStatus()).isEqualTo(WaitingQueueTokenStatus.EXPIRED);
+            boolean inSet = redisRepository.isInSet("active_queue", token);
+            assertThat(inSet).isFalse();
+
+            TokenMeta tokenMeta = redisRepository.getStringValue("active_queue:" + token,
+                TokenMeta.class);
+            assertThat(tokenMeta).isNull();
         }
 
         @DisplayName("결제가 정상적으로 이뤄지면 Payment과 PaymentHistory가 생성된다.")
@@ -351,11 +354,9 @@ class PaymentFacadeIntegrationTest {
                 .pointAmount(20000)
                 .build());
 
-            waitingQueueJpaRepository.save(WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build());
+            redisRepository.addSet("active_queue", token);
+            redisRepository.setStringValue("active_queue:" + token,
+                new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
             // when
             PaymentInfo paymentInfo = paymentFacade.payment(reservationId, token, dateTime);
@@ -404,11 +405,9 @@ class PaymentFacadeIntegrationTest {
                 .pointAmount(20000)
                 .build());
 
-            waitingQueueJpaRepository.save(WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build());
+            redisRepository.addSet("active_queue", token);
+            redisRepository.setStringValue("active_queue:" + token,
+                new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
             // when
             int attemptCount = 1000;
@@ -485,11 +484,9 @@ class PaymentFacadeIntegrationTest {
                 .pointAmount(100000)
                 .build());
 
-            waitingQueueJpaRepository.save(WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .build());
+            redisRepository.addSet("active_queue", token);
+            redisRepository.setStringValue("active_queue:" + token,
+                new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
             // when
             ExecutorService executorService = Executors.newFixedThreadPool(attemptCount);

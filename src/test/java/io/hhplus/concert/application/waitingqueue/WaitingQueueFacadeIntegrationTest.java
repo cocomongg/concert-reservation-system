@@ -1,20 +1,21 @@
 package io.hhplus.concert.application.waitingqueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.support.error.CoreErrorType;
+import io.hhplus.concert.domain.support.error.CoreErrorType.WaitingQueue;
 import io.hhplus.concert.domain.support.error.CoreException;
-import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
+import io.hhplus.concert.domain.waitingqueue.model.TokenMeta;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenInfo;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueueTokenStatus;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingTokenWithOrderInfo;
-import io.hhplus.concert.infra.db.waitingqueue.WaitingQueueJpaRepository;
-import io.hhplus.concert.support.DatabaseCleanUp;
+import io.hhplus.concert.infra.redis.repository.RedisRepository;
+import io.hhplus.concert.support.RedisCleanUp;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,17 +29,17 @@ import org.springframework.test.context.ActiveProfiles;
 class WaitingQueueFacadeIntegrationTest {
 
     @Autowired
-    private WaitingQueueJpaRepository waitingQueueJpaRepository;
+    private RedisRepository redisRepository;
 
     @Autowired
     private WaitingQueueFacade waitingQueueFacade;
 
     @Autowired
-    private DatabaseCleanUp databaseCleanUp;
+    private RedisCleanUp redisCleanUp;
 
     @AfterEach
     public void teardown() {
-        databaseCleanUp.execute();
+        redisCleanUp.execute();
     }
 
     @DisplayName("issueWaitingToken() 테스트")
@@ -53,17 +54,16 @@ class WaitingQueueFacadeIntegrationTest {
             // then
             assertThat(result.getStatus()).isEqualTo(WaitingQueueTokenStatus.WAITING);
 
-            WaitingQueue waitingQueue =
-                waitingQueueJpaRepository.findByToken(result.getToken()).orElse(null);
+            Long waitingQueue = redisRepository.getSortedSetRank("waiting_queue", result.getToken());
             assertThat(waitingQueue).isNotNull();
-            assertThat(result.getToken()).isEqualTo(waitingQueue.getToken());
+            assertThat(waitingQueue).isGreaterThanOrEqualTo(0L);
         }
     }
 
     @DisplayName("getWaitingQueueWithOrder() 테스트")
     @Nested
     class GetWaitingQueueWithOrderTest {
-        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 CoreException이 발생한다.")
+        @DisplayName("토큰 값에 해당하는 토큰이 없으면 CoreException이 발생한다.")
         @Test
         void should_ThrowCoreException_When_WaitingQueueNotFound () {
             // given
@@ -72,55 +72,20 @@ class WaitingQueueFacadeIntegrationTest {
             // when, then
             assertThatThrownBy(() -> waitingQueueFacade.getWaitingTokenWithOrderInfo(token))
                 .isInstanceOf(CoreException.class)
-                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
+                .hasMessage(WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
 
-        @DisplayName("토큰에 해당하는 waitingQueue가 대기상태가 아니라면 CoreException이 발생한다.")
-        @Test
-        void should_ThrowCoreException_When_StatusIsNotWaiting () {
-            // given
-            String token = "token";
-            WaitingQueue waitingQueue = WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .expireAt(LocalDateTime.now().plusMinutes(1))
-                .createdAt(LocalDateTime.now())
-                .build();
-
-            waitingQueueJpaRepository.save(waitingQueue);
-
-            // when, then
-            assertThatThrownBy(() -> waitingQueueFacade.getWaitingTokenWithOrderInfo(token))
-                .isInstanceOf(CoreException.class)
-                .hasMessage(CoreErrorType.WaitingQueue.INVALID_STATE_NOT_WAITING.getMessage());
-        }
-
-        @DisplayName("토큰에 해당하는 waitingQueue가 대기상태라면 WaitingQueueWithOrder를 반환한다.")
+        @DisplayName("토큰에 해당하는 waitingQueue가 대기상태라면 대기 시간에 따른 순서와 대기시간을 반환한다.")
         @Test
         void should_ReturnWaitingQueueWithOrderInfo_When_StatusIsWaiting() {
             // given
-            String token = "token3";
-            WaitingQueue activeWaitingQueue = WaitingQueue.builder()
-                .token("token1")
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .expireAt(LocalDateTime.now().plusMinutes(1))
-                .createdAt(LocalDateTime.now())
-                .build();
+            String token = "tokenValue";
+            int existsTokenCount = 5;
+            for (int i = 0; i < existsTokenCount; i++) {
+                redisRepository.addSortedSet("waiting_queue", "token" + i, System.currentTimeMillis());
+            }
 
-            WaitingQueue waitedWaitingQueue1 = WaitingQueue.builder()
-                .token("token2")
-                .status(WaitingQueueTokenStatus.WAITING)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-            WaitingQueue waitedWaitingQueue2 = WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.WAITING)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-            waitingQueueJpaRepository.saveAll(List.of(activeWaitingQueue, waitedWaitingQueue1,
-                waitedWaitingQueue2));
+            redisRepository.addSortedSet("waiting_queue", token, System.currentTimeMillis());
 
             // when
             WaitingTokenWithOrderInfo waitingQueueWithOrderInfo =
@@ -132,7 +97,7 @@ class WaitingQueueFacadeIntegrationTest {
             assertThat(tokenInfo.getStatus()).isEqualTo(WaitingQueueTokenStatus.WAITING);
 
             Long order = waitingQueueWithOrderInfo.getOrder();
-            assertThat(order).isEqualTo(2L);
+            assertThat(order).isEqualTo(existsTokenCount + 1);
 
             Long remainingWaitTime = waitingQueueWithOrderInfo.getRemainingWaitTimeSeconds();
             assertThat(remainingWaitTime).isEqualTo(ServicePolicy.WAITING_QUEUE_ACTIVATE_INTERVAL);
@@ -142,58 +107,15 @@ class WaitingQueueFacadeIntegrationTest {
     @DisplayName("checkTokenActivate() 테스트")
     @Nested
     class CheckTokenActivateTest {
-        @DisplayName("토큰에 해당하는 waitingQueue가 없으면 CoreException이 발생한다.")
+        @DisplayName("대기 상태인 토큰이면 예외가 발생한다.")
         @Test
-        void should_ThrowCoreException_When_WaitingQueueNotFound () {
+        void should_throwException_When_InputWaitingToken () {
             // given
-            String token = "InvalidToken";
-            LocalDateTime now = LocalDateTime.now();
+            String waitingToken = "tokenValue";
+            redisRepository.addSortedSet("waiting_queue", waitingToken, System.currentTimeMillis());
 
             // when, then
-            assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
-                .isInstanceOf(CoreException.class)
-                .hasMessage(CoreErrorType.WaitingQueue.WAITING_QUEUE_NOT_FOUND.getMessage());
-        }
-
-        @DisplayName("토큰에 해당하는 waitingQueue가 만료되었으면 CoreException이 발생한다.")
-        @Test
-        void should_ThrowCoreException_When_ActiveTokenIsExpired() {
-            // given
-            String token = "token";
-            LocalDateTime now = LocalDateTime.now();
-
-            WaitingQueue waitingQueue = WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .expireAt(now.minusDays(1))
-                .createdAt(now)
-                .build();
-
-            waitingQueueJpaRepository.save(waitingQueue);
-
-            // when, then
-            assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
-                .isInstanceOf(CoreException.class)
-                .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
-        }
-
-        @DisplayName("토큰의 상태가 Active가 아니면 CoreException이 발생한다.")
-        @Test
-        void should_ThrowCoreException_When_StatusIsNotActive() {
-            // given
-            String token = "token";
-            LocalDateTime now = LocalDateTime.now();
-
-            WaitingQueue waitingQueue = WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.WAITING)
-                .createdAt(now)
-                .build();
-
-            waitingQueueJpaRepository.save(waitingQueue);
-
-            // when, then
-            assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(token, now))
+            assertThatThrownBy(() -> waitingQueueFacade.checkTokenActivate(waitingToken, LocalDateTime.now()))
                 .isInstanceOf(CoreException.class)
                 .hasMessage(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
@@ -202,20 +124,14 @@ class WaitingQueueFacadeIntegrationTest {
         @Test
         void should_NotThrowException_When_TokenIsValid () {
             // given
-            String token = "token";
-            LocalDateTime now = LocalDateTime.now();
-
-            WaitingQueue waitingQueue = WaitingQueue.builder()
-                .token(token)
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .expireAt(now.plusMinutes(1))
-                .createdAt(now)
-                .build();
-
-            waitingQueueJpaRepository.save(waitingQueue);
+            String activeToken = "tokenValue";
+            redisRepository.addSet("active_queue", activeToken);
+            redisRepository.setStringValue("active_queue:" + activeToken,
+                new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
             // when, then
-            waitingQueueFacade.checkTokenActivate(token, now);
+            assertThatCode(() -> waitingQueueFacade.checkTokenActivate(activeToken, LocalDateTime.now()))
+                .doesNotThrowAnyException();
         }
     }
 
@@ -226,74 +142,25 @@ class WaitingQueueFacadeIntegrationTest {
         @Test
         void should_ActivateWaitingToken_When_InputLimit () {
             // given
-            int maxActivateCount = ServicePolicy.WAITING_QUEUE_ACTIVATE_COUNT;
-            List<WaitingQueue> list = new ArrayList<>();
-            for(int i = 0; i < maxActivateCount; ++i) {
-                WaitingQueue waitingQueue = WaitingQueue.builder()
-                    .token("token" + i)
-                    .status(WaitingQueueTokenStatus.WAITING)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-                list.add(waitingQueue);
+            int waitingTokenCount = 10;
+            for(int i = 0; i < waitingTokenCount; ++i) {
+                redisRepository.addSortedSet("waiting_queue", "token"+i, System.currentTimeMillis());
             }
-            waitingQueueJpaRepository.saveAll(list);
-
-            String notActivatedToken = "notActivatedToken";
-            WaitingQueue waitingQueueNotToActive = waitingQueueJpaRepository.save(WaitingQueue.builder()
-                .token(notActivatedToken)
-                .status(WaitingQueueTokenStatus.WAITING)
-                .createdAt(LocalDateTime.now())
-                .build());
 
             // when
-            waitingQueueFacade.activateWaitingToken();
+            Long result = waitingQueueFacade.activateWaitingToken();
 
             // then
-            WaitingQueue activatedQueue = waitingQueueJpaRepository.findById(waitingQueueNotToActive.getId())
-                .orElse(null);
-            assertThat(activatedQueue).isNotNull();
-            assertThat(activatedQueue.getStatus()).isEqualTo(WaitingQueueTokenStatus.WAITING);
-        }
-    }
+            assertThat(result).isEqualTo(waitingTokenCount);
 
-    @DisplayName("expireWaitingQueues() 테스트")
-    @Nested
-    class ExpireWaitingQueuesTest {
-        @DisplayName("만료시간이 지난 활성 상태인 토큰을 만료한다.")
-        @Test
-        void should_ExpireWaitingQueues_When_ExpireTimePassed() {
-            // given
-            LocalDateTime now = LocalDateTime.now();
-            WaitingQueue waitingQueue1 = WaitingQueue.builder()
-                .token("token1")
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .expireAt(now.minusMinutes(1))
-                .createdAt(now)
-                .build();
+            for(int i = 0; i < waitingTokenCount; ++i) {
+                boolean inSet = redisRepository.isInSet("active_queue", "token" + i);
+                assertThat(inSet).isTrue();
 
-            WaitingQueue waitingQueue2 = WaitingQueue.builder()
-                .token("token2")
-                .status(WaitingQueueTokenStatus.ACTIVE)
-                .expireAt(now.plusMinutes(1))
-                .createdAt(now)
-                .build();
-
-            waitingQueueJpaRepository.saveAll(List.of(waitingQueue1, waitingQueue2));
-
-            // when
-            waitingQueueFacade.expireWaitingQueues(now);
-
-            // then
-            WaitingQueue expiredQueue1 = waitingQueueJpaRepository.findById(waitingQueue1.getId())
-                .orElse(null);
-            assertThat(expiredQueue1).isNotNull();
-            assertThat(expiredQueue1.getStatus()).isEqualTo(WaitingQueueTokenStatus.EXPIRED);
-
-            WaitingQueue expiredQueue2 = waitingQueueJpaRepository.findById(waitingQueue2.getId())
-                .orElse(null);
-            assertThat(expiredQueue2).isNotNull();
-            assertThat(expiredQueue2.getStatus()).isEqualTo(WaitingQueueTokenStatus.ACTIVE);
+                TokenMeta stringValue = redisRepository.getStringValue("active_queue:token" + i,
+                    TokenMeta.class);
+                assertThat(stringValue).isNotNull();
+            }
         }
     }
 }
