@@ -6,4 +6,5 @@ public class ServicePolicy {
     public static final int WAITING_QUEUE_ACTIVATE_COUNT = 1000;
 
     public static final int WAITING_QUEUE_ACTIVATE_INTERVAL = 3_000;
+    public static final String CACHE_CONCERT_PREFIX = "concert";
 }
