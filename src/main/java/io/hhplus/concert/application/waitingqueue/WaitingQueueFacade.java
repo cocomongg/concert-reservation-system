@@ -3,7 +3,6 @@ package io.hhplus.concert.application.waitingqueue;
 import static io.hhplus.concert.domain.common.ServicePolicy.*;
 
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueRedisService;
-import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueTokenGenerator;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.ActivateWaitingTokens;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.InsertWaitingQueue;
