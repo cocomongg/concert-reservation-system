@@ -31,16 +31,16 @@ public class WaitingQueueScheduler {
         log.info("activate token - ed [total activated: {}]", activatedCount);
     }
 
-    @Scheduled(fixedRate = 600_000) // 10min
-    public void expireWaitingQueues() {
-        log.info("expire token - st");
-        Long expiredCount = 0L;
-        try {
-            expiredCount = waitingQueueFacade.expireWaitingQueues(LocalDateTime.now());
-        } catch (Exception e) {
-            throw new CoreException(CoreErrorType.INTERNAL_ERROR, e);
-        }
-
-        log.info("expire token - ed [total expired: {}]", expiredCount);
-    }
+//    @Scheduled(fixedRate = 600_000) // 10min
+//    public void expireWaitingQueues() {
+//        log.info("expire token - st");
+//        Long expiredCount = 0L;
+//        try {
+//            expiredCount = waitingQueueFacade.expireWaitingQueues(LocalDateTime.now());
+//        } catch (Exception e) {
+//            throw new CoreException(CoreErrorType.INTERNAL_ERROR, e);
+//        }
+//
+//        log.info("expire token - ed [total expired: {}]", expiredCount);
+//    }
 }

@@ -14,6 +14,7 @@ import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
+import io.hhplus.concert.domain.waitingqueue.WaitingQueueRedisService;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.domain.waitingqueue.model.WaitingQueue;
@@ -31,7 +32,7 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final ConcertService concertService;
     private final MemberService memberService;
-    private final WaitingQueueService waitingQueueService;
+    private final WaitingQueueRedisService waitingQueueService;
 
     @Transactional
     public PaymentInfo payment(Long reservationId, String token, LocalDateTime dateTime) {
