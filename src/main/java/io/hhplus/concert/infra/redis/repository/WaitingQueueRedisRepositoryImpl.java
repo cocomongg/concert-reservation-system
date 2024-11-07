@@ -39,6 +39,9 @@ public class WaitingQueueRedisRepositoryImpl implements WaitingQueueRedisReposit
     public boolean isActiveStatus(String token) {
         boolean inSet = redisRepository.isInSet(ACTIVE_QUEUE_KEY, token);
         TokenMeta tokenMeta = this.getTokenMeta(token);
+        if(tokenMeta == null) {
+            redisRepository.removeSet(ACTIVE_QUEUE_KEY, token);
+        }
 
         return inSet && tokenMeta != null;
     }

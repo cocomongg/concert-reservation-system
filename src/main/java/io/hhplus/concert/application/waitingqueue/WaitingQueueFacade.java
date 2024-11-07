@@ -49,7 +49,7 @@ public class WaitingQueueFacade {
 
     public Long activateWaitingToken() {
         ActivateWaitingTokens command = new ActivateWaitingTokens(
-            WAITING_QUEUE_ACTIVATE_COUNT, WAITING_QUEUE_ACTIVATE_INTERVAL,
+            WAITING_QUEUE_ACTIVATE_COUNT, WAITING_QUEUE_EXPIRED_MINUTES,
             TOKEN_ACTIVATE_INTERVAL_TIMEUNIT);
 
         return waitingQueueService.activateToken(command);
