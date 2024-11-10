@@ -15,6 +15,7 @@ import io.hhplus.concert.domain.concert.model.ConcertSchedule;
 import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class ConcertService {
 
     private final ConcertRepository concertRepository;
 
+    @Cacheable(value = ServicePolicy.CACHE_CONCERT_PREFIX, key = "'all'")
     @Transactional(readOnly = true)
     public List<Concert> getConcerts() {
         return concertRepository.getConcerts();
