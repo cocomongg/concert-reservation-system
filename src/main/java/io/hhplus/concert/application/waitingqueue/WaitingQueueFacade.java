@@ -2,8 +2,9 @@ package io.hhplus.concert.application.waitingqueue;
 
 import static io.hhplus.concert.domain.common.ServicePolicy.*;
 
-import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
+import io.hhplus.concert.domain.waitingqueue.WaitingQueueRedisService;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueTokenGenerator;
+import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.ActivateWaitingTokens;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetRemainingWaitTimeSeconds;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WaitingQueueFacade {
 
-    private final WaitingQueueService waitingQueueService;
+    private final WaitingQueueRedisService waitingQueueService;
     private final WaitingQueueTokenGenerator waitingQueueTokenGenerator;
 
     public WaitingQueueTokenInfo issueWaitingToken() {
@@ -47,10 +48,14 @@ public class WaitingQueueFacade {
     }
 
     public Long activateWaitingToken() {
-        return waitingQueueService.activateToken(WAITING_QUEUE_ACTIVATE_COUNT);
+        ActivateWaitingTokens command = new ActivateWaitingTokens(
+            WAITING_QUEUE_ACTIVATE_COUNT, WAITING_QUEUE_EXPIRED_MINUTES,
+            TOKEN_ACTIVATE_INTERVAL_TIMEUNIT);
+
+        return waitingQueueService.activateToken(command);
     }
 
-    public Long expireWaitingQueues(LocalDateTime currentTime) {
-        return waitingQueueService.expireTokens(currentTime);
-    }
+//    public Long expireWaitingQueues(LocalDateTime currentTime) {
+//        return waitingQueueService.expireToken(currentTime);
+//    }
 }

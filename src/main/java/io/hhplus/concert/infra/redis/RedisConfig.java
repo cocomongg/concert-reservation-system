@@ -1,5 +1,8 @@
 package io.hhplus.concert.infra.redis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -9,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
@@ -28,20 +32,22 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate( LettuceConnectionFactory lettuceConnectionFactory ) {
+    public RedisTemplate<String, Object> redisTemplate( LettuceConnectionFactory lettuceConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory( lettuceConnectionFactory );
 
-        // set key serializer
-        // template.setKeySerializer( new StringRedisSerializer(StandardCharsets.UTF_8) ); 와 동일함
-        template.setKeySerializer( RedisSerializer.string() );
-        template.setHashKeySerializer( RedisSerializer.string() );
+        ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // set value serializer
-        // template.setDefaultSerializer( new GenericJackson2JsonRedisSerializer() ); 와 동일함
-        template.setDefaultSerializer( RedisSerializer.json() );
-        template.setValueSerializer( RedisSerializer.json() );
-        template.setHashValueSerializer( RedisSerializer.json() );
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        template.setKeySerializer(RedisSerializer.string());
+        template.setHashKeySerializer(RedisSerializer.string());
+
+        template.setDefaultSerializer(serializer);
+        template.setValueSerializer(serializer);
+        template.setHashValueSerializer(serializer);
 
         template.afterPropertiesSet();
 
