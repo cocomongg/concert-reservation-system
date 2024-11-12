@@ -171,7 +171,7 @@ class ConcertSeatTest {
             .build();
 
         // when
-        concertSeat.completeReservation(now);
+        concertSeat.confirmReservation(now);
 
         // then
         assertThat(concertSeat.getStatus()).isEqualTo(ConcertSeatStatus.RESERVED_COMPLETE);

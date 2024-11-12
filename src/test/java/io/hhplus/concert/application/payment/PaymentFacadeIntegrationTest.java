@@ -152,11 +152,12 @@ class PaymentFacadeIntegrationTest {
             Long memberId = 1L;
             String token = "token";
             LocalDateTime dateTime = LocalDateTime.now();
+            int seatPrice = 10000;
 
             ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
                 .concertScheduleId(1L)
                 .seatNumber(10)
-                .priceAmount(10000)
+                .priceAmount(seatPrice)
                 .tempReservedAt(dateTime)
                 .createdAt(LocalDateTime.now())
                 .build());
@@ -165,6 +166,7 @@ class PaymentFacadeIntegrationTest {
                 ConcertReservation.builder()
                     .memberId(memberId)
                     .concertSeatId(savedSeat.getId())
+                    .priceAmount(savedSeat.getPriceAmount())
                     .status(ConcertReservationStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build());
@@ -188,11 +190,12 @@ class PaymentFacadeIntegrationTest {
             // given
             Long memberId = 1L;
             LocalDateTime dateTime = LocalDateTime.now();
+            int seatPrice = 10000;
 
             ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
                 .concertScheduleId(1L)
                 .seatNumber(10)
-                .priceAmount(10000)
+                .priceAmount(seatPrice)
                 .tempReservedAt(dateTime)
                 .createdAt(LocalDateTime.now())
                 .build());
@@ -201,6 +204,7 @@ class PaymentFacadeIntegrationTest {
                 ConcertReservation.builder()
                     .memberId(memberId)
                     .concertSeatId(savedSeat.getId())
+                    .priceAmount(savedSeat.getPriceAmount())
                     .status(ConcertReservationStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build());
@@ -231,11 +235,12 @@ class PaymentFacadeIntegrationTest {
             // given
             Long memberId = 1L;
             LocalDateTime dateTime = LocalDateTime.now();
+            int seatPrice = 10000;
 
             ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
                 .concertScheduleId(1L)
                 .seatNumber(10)
-                .priceAmount(10000)
+                .priceAmount(seatPrice)
                 .tempReservedAt(dateTime)
                 .createdAt(LocalDateTime.now())
                 .build());
@@ -244,6 +249,7 @@ class PaymentFacadeIntegrationTest {
                 ConcertReservation.builder()
                     .memberId(memberId)
                     .concertSeatId(savedSeat.getId())
+                    .priceAmount(savedSeat.getPriceAmount())
                     .status(ConcertReservationStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build());
@@ -282,11 +288,12 @@ class PaymentFacadeIntegrationTest {
             // given
             Long memberId = 1L;
             LocalDateTime dateTime = LocalDateTime.now();
+            int seatPrice = 10000;
 
             ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
                 .concertScheduleId(1L)
                 .seatNumber(10)
-                .priceAmount(10000)
+                .priceAmount(seatPrice)
                 .tempReservedAt(dateTime)
                 .createdAt(LocalDateTime.now())
                 .build());
@@ -295,6 +302,7 @@ class PaymentFacadeIntegrationTest {
                 ConcertReservation.builder()
                     .memberId(memberId)
                     .concertSeatId(savedSeat.getId())
+                    .priceAmount(savedSeat.getPriceAmount())
                     .status(ConcertReservationStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build());
@@ -304,7 +312,7 @@ class PaymentFacadeIntegrationTest {
 
             memberPointJpaRepository.save(MemberPoint.builder()
                 .memberId(memberId)
-                .pointAmount(20000)
+                .pointAmount(seatPrice + 1000)
                 .build());
 
             redisRepository.addSet("active_queue", token);
@@ -329,12 +337,13 @@ class PaymentFacadeIntegrationTest {
             // given
             Long memberId = 1L;
             String token = "token";
+            int seatPrice = 10000;
             LocalDateTime dateTime = LocalDateTime.now();
 
             ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
                 .concertScheduleId(1L)
                 .seatNumber(10)
-                .priceAmount(10000)
+                .priceAmount(seatPrice)
                 .tempReservedAt(dateTime)
                 .createdAt(LocalDateTime.now())
                 .build());
@@ -343,6 +352,7 @@ class PaymentFacadeIntegrationTest {
                 ConcertReservation.builder()
                     .memberId(memberId)
                     .concertSeatId(savedSeat.getId())
+                    .priceAmount(savedSeat.getPriceAmount())
                     .status(ConcertReservationStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build());
@@ -380,6 +390,7 @@ class PaymentFacadeIntegrationTest {
             // given
             Long memberId = 1L;
             LocalDateTime dateTime = LocalDateTime.now();
+            int seatPrice = 10000;
 
             ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
                 .concertScheduleId(1L)
@@ -393,6 +404,7 @@ class PaymentFacadeIntegrationTest {
                 ConcertReservation.builder()
                     .memberId(memberId)
                     .concertSeatId(savedSeat.getId())
+                    .priceAmount(savedSeat.getPriceAmount())
                     .status(ConcertReservationStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build());
@@ -448,7 +460,7 @@ class PaymentFacadeIntegrationTest {
         @DisplayName("한 명의 유저가 여러 예약에 대해 동시에 결제 요청을 할 경우, 각 예약에 대한 결제가 이뤄지고, 총 결제 금액만큼 포인트가 차감된다.")
         @Test
         void should_ExecutePaymentForEachReservation_When_PaymentRequestIsConcurrent()
-            throws InterruptedException {
+            throws InterruptedException                                       {
             // given
             int attemptCount = 10;
             int seatPrice = 1000;
@@ -470,6 +482,7 @@ class PaymentFacadeIntegrationTest {
                     ConcertReservation.builder()
                         .memberId(memberId)
                         .concertSeatId(savedSeat.getId())
+                        .priceAmount(savedSeat.getPriceAmount())
                         .status(ConcertReservationStatus.PENDING)
                         .createdAt(LocalDateTime.now())
                         .build());
