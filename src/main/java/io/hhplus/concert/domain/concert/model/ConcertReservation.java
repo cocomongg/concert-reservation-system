@@ -34,6 +34,9 @@ public class ConcertReservation {
     @Column(name = "concert_seat_id")
     private Long concertSeatId;
 
+    @Column(name = "price_amount")
+    private int priceAmount;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private ConcertReservationStatus status;
@@ -50,12 +53,13 @@ public class ConcertReservation {
     public ConcertReservation(CreateConcertReservation command) {
         this.memberId = command.getMemberId();
         this.concertSeatId = command.getConcertSeatId();
+        this.priceAmount = command.getPriceAmount();
         this.status = ConcertReservationStatus.PENDING;
         this.reservedAt = command.getDateTime();
         this.createdAt = LocalDateTime.now();
     }
 
-    public void completeReservation(LocalDateTime currentTime) {
+    public void confirmReservation(LocalDateTime currentTime) {
         this.status = ConcertReservationStatus.COMPLETED;
         this.reservedAt = currentTime;
         this.updatedAt = LocalDateTime.now();

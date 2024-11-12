@@ -3,10 +3,10 @@ package io.hhplus.concert.application.payment;
 import io.hhplus.concert.application.payment.PaymentDto.PaymentInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
 import io.hhplus.concert.domain.concert.ConcertService;
+import io.hhplus.concert.domain.concert.dto.ConcertCommand.ConfirmReservation;
+import io.hhplus.concert.domain.concert.dto.ConcertQuery.CheckConcertSeatExpired;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
-import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSeat;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
-import io.hhplus.concert.domain.concert.model.ConcertSeat;
 import io.hhplus.concert.domain.member.MemberService;
 import io.hhplus.concert.domain.payment.PaymentService;
 import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePayment;
@@ -38,21 +38,18 @@ public class PaymentFacade {
             concertService.getConcertReservation(new GetConcertReservation(reservationId));
 
         Long concertSeatId = concertReservation.getConcertSeatId();
-        ConcertSeat concertSeat =
-            concertService.getConcertSeatWithOptimisticLock(new GetConcertSeat(concertSeatId));
-        concertSeat.checkExpired(dateTime, ServicePolicy.TEMP_RESERVE_DURATION_MINUTES);
-
-        int priceAmount = concertSeat.getPriceAmount();
-        // 포인트 차감
         Long memberId = concertReservation.getMemberId();
+        int priceAmount = concertReservation.getPriceAmount();
+
+        // 좌석 임시 배정 상태 검증
+        concertService.checkConcertSeatExpired(new CheckConcertSeatExpired(concertSeatId, dateTime,
+            ServicePolicy.TEMP_RESERVE_DURATION_MINUTES));
+
+        // 포인트 차감
         memberService.usePoint(memberId, priceAmount);
 
         // 좌석, 예약 정보 업데이트
-        concertSeat.completeReservation(dateTime);
-        concertReservation.completeReservation(dateTime);
-
-        // 대기열 만료 처리
-        waitingQueueService.expireToken(new GetWaitingQueueCommonQuery(token));
+        concertService.confirmReservation(new ConfirmReservation(concertSeatId, reservationId, dateTime));
 
         // 결제 정보 저장
         Payment payment = paymentService.createPayment(new CreatePayment(memberId, reservationId,
@@ -62,6 +59,9 @@ public class PaymentFacade {
         PaymentHistory paymentHistory = paymentService.createPaymentHistory(
             new CreatePaymentHistory(payment.getId(),
                 PaymentStatus.PAID, priceAmount));
+
+        // 대기열 만료 처리
+        waitingQueueService.expireToken(new GetWaitingQueueCommonQuery(token));
 
         return new PaymentInfo(payment);
     }

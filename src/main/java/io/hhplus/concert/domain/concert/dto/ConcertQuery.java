@@ -43,4 +43,12 @@ public class ConcertQuery {
     public static class GetConcertReservation {
         private final long concertReservationId;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public static class CheckConcertSeatExpired {
+        private final long concertSeatId;
+        private final LocalDateTime currentTime;
+        private final int tempReserveDurationMinutes;
+    }
 }

@@ -1,8 +1,10 @@
 package io.hhplus.concert.domain.concert;
 
 import io.hhplus.concert.domain.common.ServicePolicy;
+import io.hhplus.concert.domain.concert.dto.ConcertCommand.ConfirmReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.CreateConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.ReserveConcertSeat;
+import io.hhplus.concert.domain.concert.dto.ConcertQuery.CheckConcertSeatExpired;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcert;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertSchedule;
@@ -33,11 +35,6 @@ public class ConcertService {
 
     @Transactional(readOnly = true)
     public ConcertSeat getConcertSeat(GetConcertSeat query) {
-        return concertRepository.getConcertSeat(query);
-    }
-
-    @Transactional(readOnly = true)
-    public ConcertSeat getConcertSeatWithOptimisticLock(GetConcertSeat query) {
         return concertRepository.getConcertSeatWithLock(query);
     }
 
@@ -77,13 +74,30 @@ public class ConcertService {
         return concertRepository.getConcertReservation(query);
     }
 
+    @Transactional(readOnly = true)
+    public void checkConcertSeatExpired(CheckConcertSeatExpired query) {
+        ConcertSeat concertSeat = this.getConcertSeat(new GetConcertSeat(query.getConcertSeatId()));
+        concertSeat.checkExpired(query.getCurrentTime(), query.getTempReserveDurationMinutes());
+    }
+
     @Transactional
     public ConcertSeat reserveConcertSeat(ReserveConcertSeat command) {
-        ConcertSeat concertSeat =
-            this.getConcertSeatWithOptimisticLock(new GetConcertSeat(command.getConcertSeatId()));
-
-        concertSeat.reserve(command.getCurrentTime(), command.getTempReserveDurationMinutes());
+        ConcertSeat concertSeat = this.getConcertSeat(new GetConcertSeat(command.getConcertSeatId()));
+        concertSeat.reserve(command.getDateTime(), command.getTempReserveDurationMinutes());
 
         return concertSeat;
+    }
+
+    @Transactional
+    public void confirmReservation(ConfirmReservation command) {
+        long concertReservationId = command.getConcertReservationId();
+        long concertSeatId = command.getConcertSeatId();
+
+        ConcertSeat concertSeat = this.getConcertSeat(new GetConcertSeat(concertSeatId));
+        concertSeat.confirmReservation(command.getDateTime());
+
+        ConcertReservation concertReservation =
+            this.getConcertReservation(new GetConcertReservation(concertReservationId));
+        concertReservation.confirmReservation(command.getDateTime());
     }
 }
