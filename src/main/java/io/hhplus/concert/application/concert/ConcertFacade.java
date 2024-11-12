@@ -76,7 +76,7 @@ public class ConcertFacade {
 
         ConcertSeat concertSeat = concertService.reserveConcertSeat(reserveCommand);
         ConcertReservation concertReservation = concertService.createConcertReservation(
-            new CreateConcertReservation(member.getId(), concertSeat.getId(), dateTime));
+            new CreateConcertReservation(member.getId(), concertSeat.getId(), concertSeat.getPriceAmount(), dateTime));
 
         return new ConcertReservationInfo(concertReservation, concertSeat);
     }

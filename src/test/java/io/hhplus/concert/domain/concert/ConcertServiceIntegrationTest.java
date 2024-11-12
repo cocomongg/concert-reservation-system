@@ -112,7 +112,7 @@ class ConcertServiceIntegrationTest {
         void should_SaveConcertReservation_When_ByInput() {
             // given
             CreateConcertReservation command = new CreateConcertReservation(1L, 1L,
-                LocalDateTime.now());
+                1000, LocalDateTime.now());
 
             // when
             ConcertReservation concertReservation = concertService.createConcertReservation(
@@ -126,6 +126,7 @@ class ConcertServiceIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getMemberId()).isEqualTo(command.getMemberId());
             assertThat(result.getConcertSeatId()).isEqualTo(command.getConcertSeatId());
+            assertThat(result.getPriceAmount()).isEqualTo(command.getPriceAmount());
             assertThat(result.getStatus()).isEqualTo(ConcertReservationStatus.PENDING);
             assertThat(result.getReservedAt()).isEqualTo(command.getDateTime());
         }
@@ -135,7 +136,7 @@ class ConcertServiceIntegrationTest {
         void should_ReturnConcertReservation_When_ByInput() {
             // given
             CreateConcertReservation command = new CreateConcertReservation(1L, 1L,
-                LocalDateTime.now());
+                1000, LocalDateTime.now());
 
             // when
             ConcertReservation result = concertService.createConcertReservation(
@@ -145,6 +146,7 @@ class ConcertServiceIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getMemberId()).isEqualTo(command.getMemberId());
             assertThat(result.getConcertSeatId()).isEqualTo(command.getConcertSeatId());
+            assertThat(result.getPriceAmount()).isEqualTo(command.getPriceAmount());
             assertThat(result.getStatus()).isEqualTo(ConcertReservationStatus.PENDING);
             assertThat(result.getReservedAt()).isEqualTo(command.getDateTime());
         }
@@ -363,7 +365,7 @@ class ConcertServiceIntegrationTest {
         @Test
         void should_ReturnConcertReservation_When_ConcertReservationFound() {
             // given
-            ConcertReservation concertReservation = new ConcertReservation(null, 1L, 1L,
+            ConcertReservation concertReservation = new ConcertReservation(null, 1L, 1L, 1000,
                 ConcertReservationStatus.PENDING, null, LocalDateTime.now(), null);
 
             ConcertReservation savedConcertReservation =

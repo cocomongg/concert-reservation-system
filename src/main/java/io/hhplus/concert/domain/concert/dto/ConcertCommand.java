@@ -11,6 +11,7 @@ public class ConcertCommand {
     public static class CreateConcertReservation {
         private final long memberId;
         private final long concertSeatId;
+        private final int priceAmount;
         private final LocalDateTime dateTime;
     }
 
@@ -18,7 +19,15 @@ public class ConcertCommand {
     @AllArgsConstructor
     public static class ReserveConcertSeat {
         private final long concertSeatId;
-        private final LocalDateTime currentTime;
+        private final LocalDateTime dateTime;
         private final int tempReserveDurationMinutes;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ConfirmReservation {
+        private final long concertSeatId;
+        private final long concertReservationId;
+        private final LocalDateTime dateTime;
     }
 }

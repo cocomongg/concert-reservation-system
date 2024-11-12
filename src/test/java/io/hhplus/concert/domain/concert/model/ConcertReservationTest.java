@@ -1,7 +1,6 @@
 package io.hhplus.concert.domain.concert.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
@@ -14,11 +13,11 @@ class ConcertReservationTest {
     void should_ReservationCompleted_When_CallCompleteReservation () {
         // given
         LocalDateTime now = LocalDateTime.now();
-        ConcertReservation concertReservation = new ConcertReservation(1L, 1L, 1L,
+        ConcertReservation concertReservation = new ConcertReservation(1L, 1L, 1L, 1000,
             ConcertReservationStatus.PENDING, null, LocalDateTime.now(), null);
 
         // when
-        concertReservation.completeReservation(now);
+        concertReservation.confirmReservation(now);
 
         // then
         assertThat(concertReservation.getStatus()).isEqualTo(ConcertReservationStatus.COMPLETED);

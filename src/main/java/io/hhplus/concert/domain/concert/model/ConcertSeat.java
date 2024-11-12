@@ -97,7 +97,7 @@ public class ConcertSeat {
         }
     }
 
-    public void completeReservation(LocalDateTime currentTime) {
+    public void confirmReservation(LocalDateTime currentTime) {
         this.status = ConcertSeatStatus.RESERVED_COMPLETE;
         this.reservedAt = currentTime;
         this.updatedAt = LocalDateTime.now();
