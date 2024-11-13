@@ -5,7 +5,7 @@ import io.hhplus.concert.domain.waitingqueue.model.TokenMeta;
 import java.time.Duration;
 import java.util.List;
 
-public interface WaitingQueueRedisRepository {
+public interface WaitingQueueRepository {
     boolean insertWaitingQueue(InsertWaitingQueue command);
 
     Long getWaitingTokenOrder(String token);

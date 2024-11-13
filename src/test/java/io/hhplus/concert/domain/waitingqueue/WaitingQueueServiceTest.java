@@ -28,13 +28,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class WaitingQueueRedisServiceTest {
+class WaitingQueueServiceTest {
 
     @Mock
-    private WaitingQueueRedisRepository waitingQueueRepository;
+    private WaitingQueueRepository waitingQueueRepository;
 
     @InjectMocks
-    private WaitingQueueRedisService waitingQueueService;
+    private WaitingQueueService waitingQueueService;
 
     @DisplayName("getWaitingQueueToken 테스트")
     @Nested

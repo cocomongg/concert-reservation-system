@@ -25,10 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class WaitingQueueRedisServiceIntegrationTest {
+class WaitingQueueServiceIntegrationTest {
 
     @Autowired
-    private WaitingQueueRedisService waitingQueueRedisService;
+    private WaitingQueueService waitingQueueService;
 
     @Autowired
     private RedisRepository redisRepository;
@@ -53,7 +53,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             InsertWaitingQueue command = new InsertWaitingQueue(token, now);
 
             // when
-            WaitingQueueTokenInfo result = waitingQueueRedisService.insertWaitingQueue(command);
+            WaitingQueueTokenInfo result = waitingQueueService.insertWaitingQueue(command);
 
             // then
             assertThat(result.getToken()).isEqualTo(token);
@@ -73,7 +73,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
 
             // when
-            WaitingQueueTokenInfo result = waitingQueueRedisService.getWaitingQueueToken(query);
+            WaitingQueueTokenInfo result = waitingQueueService.getWaitingQueueToken(query);
 
             // then
             assertThat(result.getToken()).isEqualTo(token);
@@ -92,7 +92,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
 
             // when
-            WaitingQueueTokenInfo result = waitingQueueRedisService.getWaitingQueueToken(query);
+            WaitingQueueTokenInfo result = waitingQueueService.getWaitingQueueToken(query);
 
             // then
             assertThat(result.getToken()).isEqualTo(token);
@@ -108,7 +108,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(token);
 
             // when & then
-            assertThatThrownBy(() -> waitingQueueRedisService.getWaitingQueueToken(query))
+            assertThatThrownBy(() -> waitingQueueService.getWaitingQueueToken(query))
                 .isInstanceOf(CoreException.class)
                 .hasMessageContaining(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
@@ -133,7 +133,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(waitingToken);
 
             // when
-            Long result = waitingQueueRedisService.getWaitingTokenOrder(query);
+            Long result = waitingQueueService.getWaitingTokenOrder(query);
 
             // then
             assertThat(result).isEqualTo(existsTokenCount + 1);
@@ -151,7 +151,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(activeToken);
 
             // when
-            Long result = waitingQueueRedisService.getWaitingTokenOrder(query);
+            Long result = waitingQueueService.getWaitingTokenOrder(query);
 
             // then
             assertThat(result).isEqualTo(0);
@@ -171,7 +171,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             CheckTokenActivate query = new CheckTokenActivate(waitingToken, LocalDateTime.now());
 
             // when & then
-            assertThatThrownBy(() -> waitingQueueRedisService.checkTokenActivate(query))
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
                 .isInstanceOf(CoreException.class)
                 .hasMessageContaining(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
@@ -186,7 +186,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             CheckTokenActivate query = new CheckTokenActivate(activeToken, LocalDateTime.now());
 
             // when & then
-            assertThatThrownBy(() -> waitingQueueRedisService.checkTokenActivate(query))
+            assertThatThrownBy(() -> waitingQueueService.checkTokenActivate(query))
                 .isInstanceOf(CoreException.class)
                 .hasMessageContaining(CoreErrorType.WaitingQueue.INVALID_WAITING_QUEUE.getMessage());
         }
@@ -208,7 +208,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             ActivateWaitingTokens command = new ActivateWaitingTokens(activateCount, 10, TimeUnit.MINUTES);
 
             // when
-            long result = waitingQueueRedisService.activateToken(command);
+            long result = waitingQueueService.activateToken(command);
 
             // then
             assertThat(result).isEqualTo(activateCount);
@@ -235,7 +235,7 @@ class WaitingQueueRedisServiceIntegrationTest {
             GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(activeToken);
 
             // when
-            waitingQueueRedisService.expireToken(query);
+            waitingQueueService.expireToken(query);
 
             // then
             boolean inSet = redisRepository.isInSet("active_queue", activeToken);

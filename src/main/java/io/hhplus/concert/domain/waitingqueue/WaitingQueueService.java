@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class WaitingQueueRedisService {
-    private final WaitingQueueRedisRepository waitingQueueRepository;
+public class WaitingQueueService {
+    private final WaitingQueueRepository waitingQueueRepository;
 
     public WaitingQueueTokenInfo insertWaitingQueue(InsertWaitingQueue command) {
         waitingQueueRepository.insertWaitingQueue(command);

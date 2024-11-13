@@ -1,6 +1,6 @@
 package io.hhplus.concert.infra.redis.repository;
 
-import io.hhplus.concert.domain.waitingqueue.WaitingQueueRedisRepository;
+import io.hhplus.concert.domain.waitingqueue.WaitingQueueRepository;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.domain.waitingqueue.model.TokenMeta;
 import java.time.Duration;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository;
 @Primary
 @RequiredArgsConstructor
 @Repository
-public class WaitingQueueRedisRepositoryImpl implements WaitingQueueRedisRepository {
+public class WaitingQueueRepositoryImpl implements WaitingQueueRepository {
     private static final String WAITING_QUEUE_KEY = "waiting_queue";
     private static final String ACTIVE_QUEUE_KEY = "active_queue";
 

@@ -14,7 +14,7 @@ import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
-import io.hhplus.concert.domain.waitingqueue.WaitingQueueRedisService;
+import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final ConcertService concertService;
     private final MemberService memberService;
-    private final WaitingQueueRedisService waitingQueueService;
+    private final WaitingQueueService waitingQueueService;
 
     @Transactional
     public PaymentInfo payment(Long reservationId, String token, LocalDateTime dateTime) {
