@@ -6,6 +6,7 @@ import io.hhplus.concert.domain.payment.event.PaymentEvent.CreatePaymentHistoryE
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -17,6 +18,7 @@ public class PaymentEventHandler {
 
     private final PaymentService paymentService;
 
+    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleCreatePaymentHistoryEvent(CreatePaymentHistoryEvent event) {
         try {
