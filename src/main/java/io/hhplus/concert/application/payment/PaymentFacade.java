@@ -18,7 +18,7 @@ import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePayment;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
-import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
+import io.hhplus.concert.domain.waitingqueue.event.WaitingQueueEvent.ExpireTokenEvent;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,6 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final ConcertService concertService;
     private final MemberService memberService;
-    private final WaitingQueueService waitingQueueService;
     private final DomainEventPublisher domainEventPublisher;
     private final NotificationService notificationService;
 
@@ -64,7 +63,7 @@ public class PaymentFacade {
         domainEventPublisher.publish(new CreatePaymentHistoryEvent(payment.getId(), priceAmount));
 
         // 대기열 만료 처리
-        waitingQueueService.expireToken(new GetWaitingQueueCommonQuery(token));
+        domainEventPublisher.publish(new ExpireTokenEvent(token));
 
         // 결제 완료 내역 전송
         NotificationMessage message = new NotificationMessage("결제 완료", "결제가 완료되었습니다.", memberId);
