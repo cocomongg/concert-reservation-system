@@ -1,7 +1,10 @@
 package io.hhplus.concert.application.payment;
 
+import static io.hhplus.concert.domain.payment.event.PaymentEvent.CreatePaymentHistoryEvent;
+
 import io.hhplus.concert.application.payment.PaymentDto.PaymentInfo;
 import io.hhplus.concert.domain.common.ServicePolicy;
+import io.hhplus.concert.domain.common.event.DomainEventPublisher;
 import io.hhplus.concert.domain.concert.ConcertService;
 import io.hhplus.concert.domain.concert.dto.ConcertCommand.ConfirmReservation;
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.CheckConcertSeatExpired;
@@ -12,9 +15,7 @@ import io.hhplus.concert.domain.notification.NotificationService;
 import io.hhplus.concert.domain.notification.model.NotificationMessage;
 import io.hhplus.concert.domain.payment.PaymentService;
 import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePayment;
-import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.domain.payment.model.Payment;
-import io.hhplus.concert.domain.payment.model.PaymentHistory;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
@@ -33,6 +34,7 @@ public class PaymentFacade {
     private final ConcertService concertService;
     private final MemberService memberService;
     private final WaitingQueueService waitingQueueService;
+    private final DomainEventPublisher domainEventPublisher;
     private final NotificationService notificationService;
 
     @Transactional
@@ -59,9 +61,7 @@ public class PaymentFacade {
             priceAmount, PaymentStatus.PAID, dateTime));
 
         // 결제 이력 저장
-        PaymentHistory paymentHistory = paymentService.createPaymentHistory(
-            new CreatePaymentHistory(payment.getId(),
-                PaymentStatus.PAID, priceAmount));
+        domainEventPublisher.publish(new CreatePaymentHistoryEvent(payment.getId(), priceAmount));
 
         // 대기열 만료 처리
         waitingQueueService.expireToken(new GetWaitingQueueCommonQuery(token));
