@@ -11,13 +11,11 @@ import io.hhplus.concert.domain.concert.dto.ConcertQuery.CheckConcertSeatExpired
 import io.hhplus.concert.domain.concert.dto.ConcertQuery.GetConcertReservation;
 import io.hhplus.concert.domain.concert.model.ConcertReservation;
 import io.hhplus.concert.domain.member.MemberService;
-import io.hhplus.concert.domain.notification.NotificationService;
-import io.hhplus.concert.domain.notification.model.NotificationMessage;
+import io.hhplus.concert.domain.notification.event.NotificationEvent.SendNotificationEvent;
 import io.hhplus.concert.domain.payment.PaymentService;
 import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePayment;
 import io.hhplus.concert.domain.payment.model.Payment;
 import io.hhplus.concert.domain.payment.model.PaymentStatus;
-import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.event.WaitingQueueEvent.ExpireTokenEvent;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +32,6 @@ public class PaymentFacade {
     private final ConcertService concertService;
     private final MemberService memberService;
     private final DomainEventPublisher domainEventPublisher;
-    private final NotificationService notificationService;
 
     @Transactional
     public PaymentInfo payment(Long reservationId, String token, LocalDateTime dateTime) {
@@ -66,8 +63,7 @@ public class PaymentFacade {
         domainEventPublisher.publish(new ExpireTokenEvent(token));
 
         // 결제 완료 내역 전송
-        NotificationMessage message = new NotificationMessage("결제 완료", "결제가 완료되었습니다.", memberId);
-        notificationService.sendNotification(message);
+        domainEventPublisher.publish(new SendNotificationEvent("결제 완료", "결제가 완료되었습니다.", memberId));
 
         return new PaymentInfo(payment);
     }
