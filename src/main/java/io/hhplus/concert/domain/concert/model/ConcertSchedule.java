@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -16,7 +17,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "concert_schedule")
+@Table(name = "concert_schedule", indexes = {
+    @Index(name = "concert_schedule_concert_id_scheduled_at_index", columnList = "concertId, scheduledAt"),
+})
 @Entity
 public class ConcertSchedule {
 
