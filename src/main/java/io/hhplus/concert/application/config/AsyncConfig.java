@@ -1,4 +1,4 @@
-package io.hhplus.concert.config;
+package io.hhplus.concert.application.config;
 
 import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Configuration;

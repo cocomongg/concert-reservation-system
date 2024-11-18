@@ -1,4 +1,4 @@
-package io.hhplus.concert.config;
+package io.hhplus.concert.application.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
