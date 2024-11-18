@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.LocalDateTime;
@@ -22,7 +23,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "concert_seat")
+@Table(name = "concert_seat", indexes = {
+    @Index(name = "concert_seat_concert_schedule_id_index", columnList = "concertScheduleId"),
+})
 @Entity
 public class ConcertSeat {
 
