@@ -1,7 +1,6 @@
 package io.hhplus.concert.domain.waitingqueue.event;
 
-import static io.hhplus.concert.domain.waitingqueue.event.WaitingQueueEvent.ExpireTokenEvent;
-
+import io.hhplus.concert.domain.payment.event.DonePaymentEvent;
 import io.hhplus.concert.domain.waitingqueue.WaitingQueueService;
 import io.hhplus.concert.domain.waitingqueue.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +13,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class WaitingQueueEventHandler {
+public class DonePaymentTokenExpireHandler {
 
     private final WaitingQueueService waitingQueueService;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handlePaymentDoneEvent(ExpireTokenEvent event) {
+    public void handle(DonePaymentEvent event) {
         try {
             String token = event.getToken();
             waitingQueueService.expireToken(new GetWaitingQueueCommonQuery(token));

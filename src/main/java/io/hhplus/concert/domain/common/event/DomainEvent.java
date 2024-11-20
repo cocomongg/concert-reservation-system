@@ -6,6 +6,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class DomainEvent {
+public abstract class DomainEvent {
     private final LocalDateTime publishAt;
 }
