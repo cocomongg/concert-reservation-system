@@ -1,26 +1,35 @@
 package io.hhplus.concert.application.payment;
 
+import static io.hhplus.concert.app.payment.domain.model.OutboxStatus.SUCCESS;
+import static io.hhplus.concert.app.payment.domain.model.PaymentEventType.DONE_PAYMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-import io.hhplus.concert.app.payment.application.PaymentDto.PaymentInfo;
-import io.hhplus.concert.app.payment.application.PaymentFacade;
 import io.hhplus.concert.app.common.ServicePolicy;
+import io.hhplus.concert.app.common.error.CoreErrorType;
+import io.hhplus.concert.app.common.error.CoreException;
 import io.hhplus.concert.app.concert.domain.model.ConcertReservation;
 import io.hhplus.concert.app.concert.domain.model.ConcertReservationStatus;
 import io.hhplus.concert.app.concert.domain.model.ConcertSeat;
 import io.hhplus.concert.app.concert.domain.model.ConcertSeatStatus;
-import io.hhplus.concert.app.member.domain.model.MemberPoint;
-import io.hhplus.concert.app.payment.domain.model.Payment;
-import io.hhplus.concert.app.payment.domain.model.PaymentStatus;
-import io.hhplus.concert.app.common.error.CoreErrorType;
-import io.hhplus.concert.app.common.error.CoreException;
-import io.hhplus.concert.app.waitingqueue.domain.model.TokenMeta;
 import io.hhplus.concert.app.concert.infra.db.ConcertReservationJpaRepository;
 import io.hhplus.concert.app.concert.infra.db.ConcertSeatJpaRepository;
+import io.hhplus.concert.app.member.domain.model.MemberPoint;
 import io.hhplus.concert.app.member.infra.db.MemberPointJpaRepository;
+import io.hhplus.concert.app.notification.domain.NotificationService;
+import io.hhplus.concert.app.notification.domain.model.NotificationMessage;
+import io.hhplus.concert.app.payment.application.PaymentDto.PaymentInfo;
+import io.hhplus.concert.app.payment.application.PaymentFacade;
+import io.hhplus.concert.app.payment.domain.model.Payment;
+import io.hhplus.concert.app.payment.domain.model.PaymentOutbox;
+import io.hhplus.concert.app.payment.domain.model.PaymentStatus;
 import io.hhplus.concert.app.payment.infra.db.PaymentJpaRepository;
+import io.hhplus.concert.app.payment.infra.db.PaymentOutboxJpaRepository;
+import io.hhplus.concert.app.waitingqueue.domain.model.TokenMeta;
 import io.hhplus.concert.app.waitingqueue.infra.redis.RedisRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
 import io.hhplus.concert.support.RedisCleanUp;
@@ -39,7 +48,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
@@ -66,10 +77,19 @@ class PaymentFacadeIntegrationTest {
     private ConcertReservationJpaRepository concertReservationJpaRepository;
 
     @Autowired
+    private PaymentOutboxJpaRepository paymentOutboxJpaRepository;
+
+    @MockBean
+    private NotificationService notificationService;
+
+    @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
     @Autowired
     private RedisCleanUp redisCleanUp;
+
+    @Value("${kafka.topics.payment}")
+    private String paymentTopic;
 
     @AfterEach
     public void teardown() {
@@ -550,4 +570,148 @@ class PaymentFacadeIntegrationTest {
         }
     }
 
+    @Nested
+    @DisplayName("listen DonePaymentEvent 테스트")
+    class DonePaymentEventListener {
+        @DisplayName("결제가 완료되면 DonePaymentEvent가 발행되어 PaymentOutbox가 생성된다.")
+        @Test
+        void should_CreatePaymentOutbox_When_PublishedDonePaymentEvent() {
+            // given
+            Long memberId = 1L;
+            String token = "token";
+            int seatPrice = 10000;
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            Long reservationId = createDataForSuccessPayment(memberId, token, seatPrice,
+                dateTime);
+
+            // when
+            paymentFacade.payment(reservationId, token, dateTime);
+
+            // then
+            await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    List<PaymentOutbox> paymentOutboxes = paymentOutboxJpaRepository.findAll();
+                    PaymentOutbox paymentOutbox = paymentOutboxes.get(0);
+
+                    assertThat(paymentOutbox).isNotNull();
+                    assertThat(paymentOutbox.getEventType()).isEqualTo(DONE_PAYMENT);
+                    assertThat(paymentOutbox.getTopic()).isEqualTo(paymentTopic);
+                });
+        }
+    }
+
+    @Nested
+    @DisplayName("consume DonePaymentEventMessage 테스트")
+    class ProduceMessageTest {
+        @DisplayName("결제가 완료되고 produce된 DonePaymentEvent message를 consume하면 NotificationService의 sendNotification()이 호출된다.")
+        @Test
+        void should_ProduceMessage_When_DonePaymentEventIsPublished() {
+            // given
+            Long memberId = 1L;
+            String token = "token";
+            int seatPrice = 10000;
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            Long reservationId = createDataForSuccessPayment(memberId, token, seatPrice,
+                dateTime);
+
+            // when
+            paymentFacade.payment(reservationId, token, dateTime);
+
+            // then
+            await().atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    verify(notificationService, times(1))
+                        .sendNotification(any(NotificationMessage.class));
+                });
+        }
+
+        @DisplayName("결제가 완료되고 produce된 DonePaymentEvent message를 consume하면 대기열 토큰이 만료된다.")
+        @Test
+        void should_ExpireToken_When_ConsumeDonePaymentEvent() {
+            // given
+            Long memberId = 1L;
+            String token = "token";
+            int seatPrice = 10000;
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            Long reservationId = createDataForSuccessPayment(memberId, token, seatPrice,
+                dateTime);
+
+            // when
+            paymentFacade.payment(reservationId, token, dateTime);
+
+            // then
+            await().atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    boolean inSet = redisRepository.isInSet("active_queue", token);
+                    assertThat(inSet).isFalse();
+
+                    TokenMeta tokenMeta = redisRepository.getStringValue("active_queue:" + token,
+                        TokenMeta.class);
+                    assertThat(tokenMeta).isNull();
+                });
+        }
+
+        @DisplayName("결제가 완료되고 produce된 DonePaymentEvent message를 consume하면 outbox 상태가 SUCCESS로 변경된다.")
+        @Test
+        void should_UpdateOutboxStatus_When_ConsumeDonePaymentEvent() {
+            // given
+            Long memberId = 1L;
+            String token = "token";
+            int seatPrice = 10000;
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            Long reservationId = createDataForSuccessPayment(memberId, token, seatPrice,
+                dateTime);
+
+            // when
+            paymentFacade.payment(reservationId, token, dateTime);
+
+            // then
+            await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    List<PaymentOutbox> paymentOutboxes = paymentOutboxJpaRepository.findAll();
+                    PaymentOutbox paymentOutbox = paymentOutboxes.get(0);
+
+                    assertThat(paymentOutbox).isNotNull();
+                    assertThat(paymentOutbox.getStatus()).isEqualTo(SUCCESS);
+                    assertThat(paymentOutbox.getTopic()).isEqualTo(paymentTopic);
+                });
+        }
+    }
+
+    private Long createDataForSuccessPayment(Long memberId, String token, int seatPrice, LocalDateTime dateTime) {
+        ConcertSeat savedSeat = concertSeatJpaRepository.save(ConcertSeat.builder()
+            .concertScheduleId(1L)
+            .seatNumber(10)
+            .priceAmount(seatPrice)
+            .tempReservedAt(dateTime)
+            .createdAt(LocalDateTime.now())
+            .build());
+
+        ConcertReservation savedReservation = concertReservationJpaRepository.save(
+            ConcertReservation.builder()
+                .memberId(memberId)
+                .concertSeatId(savedSeat.getId())
+                .priceAmount(savedSeat.getPriceAmount())
+                .status(ConcertReservationStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+        Long reservationId = savedReservation.getId();
+
+        memberPointJpaRepository.save(MemberPoint.builder()
+            .memberId(memberId)
+            .pointAmount(20000)
+            .build());
+
+        redisRepository.addSet("active_queue", token);
+        redisRepository.setStringValue("active_queue:" + token,
+            new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
+
+        return reservationId;
+    }
 }
