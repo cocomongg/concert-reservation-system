@@ -10,7 +10,6 @@ public class DonePaymentEvent extends PaymentEvent {
     private final String token;
 
     public DonePaymentEvent(Payment payment, String token) {
-        super(LocalDateTime.now());
         this.payment = payment;
         this.token = token;
     }
