@@ -22,7 +22,7 @@ public class KafkaTestConsumer {
 
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "${kafka.topics.test}", groupId = "test_group")
+    @KafkaListener(topics = "test-topic", groupId = "test-group")
     public void consume(ConsumerRecord<String, Object> message, Acknowledgment ack) {
         try {
             Object value = message.value();

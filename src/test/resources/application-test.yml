@@ -17,9 +17,13 @@ spring:
 
 kafka:
   producer:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:29092
   consumer:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:29092
     auto-offset-reset: earliest
   topics:
-    test: test-topic
+    payment: payment-done-topic
+  groups:
+    payment: payment-group
+    waitingQueue: waiting-queue-group
+    notification: notification-group
