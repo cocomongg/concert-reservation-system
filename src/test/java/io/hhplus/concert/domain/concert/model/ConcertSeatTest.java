@@ -3,8 +3,10 @@ package io.hhplus.concert.domain.concert.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import io.hhplus.concert.domain.support.error.CoreErrorType;
-import io.hhplus.concert.domain.support.error.CoreException;
+import io.hhplus.concert.app.concert.domain.model.ConcertSeat;
+import io.hhplus.concert.app.concert.domain.model.ConcertSeatStatus;
+import io.hhplus.concert.app.common.error.CoreErrorType;
+import io.hhplus.concert.app.common.error.CoreException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

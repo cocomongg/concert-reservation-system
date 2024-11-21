@@ -2,6 +2,8 @@ package io.hhplus.concert.domain.concert.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.hhplus.concert.app.concert.domain.model.ConcertReservation;
+import io.hhplus.concert.app.concert.domain.model.ConcertReservationStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

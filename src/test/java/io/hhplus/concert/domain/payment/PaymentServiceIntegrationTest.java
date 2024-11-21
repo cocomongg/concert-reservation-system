@@ -1,15 +1,15 @@
 package io.hhplus.concert.domain.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
-import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePayment;
-import io.hhplus.concert.domain.payment.dto.PaymentCommand.CreatePaymentHistory;
-import io.hhplus.concert.domain.payment.model.Payment;
-import io.hhplus.concert.domain.payment.model.PaymentHistory;
-import io.hhplus.concert.domain.payment.model.PaymentStatus;
-import io.hhplus.concert.infra.db.payment.PaymentHistoryJpaRepository;
-import io.hhplus.concert.infra.db.payment.PaymentJpaRepository;
+import io.hhplus.concert.app.payment.domain.service.PaymentService;
+import io.hhplus.concert.app.payment.domain.dto.PaymentCommand.CreatePayment;
+import io.hhplus.concert.app.payment.domain.dto.PaymentCommand.CreatePaymentHistory;
+import io.hhplus.concert.app.payment.domain.model.Payment;
+import io.hhplus.concert.app.payment.domain.model.PaymentHistory;
+import io.hhplus.concert.app.payment.domain.model.PaymentStatus;
+import io.hhplus.concert.app.payment.infra.db.PaymentHistoryJpaRepository;
+import io.hhplus.concert.app.payment.infra.db.PaymentJpaRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;

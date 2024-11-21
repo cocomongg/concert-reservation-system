@@ -8,9 +8,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.hhplus.concert.domain.member.model.MemberPoint;
-import io.hhplus.concert.domain.support.error.CoreErrorType;
-import io.hhplus.concert.domain.support.error.CoreException;
+import io.hhplus.concert.app.member.domain.model.MemberPoint;
+import io.hhplus.concert.app.member.domain.repository.MemberRepository;
+import io.hhplus.concert.app.member.domain.service.MemberService;
+import io.hhplus.concert.app.common.error.CoreErrorType;
+import io.hhplus.concert.app.common.error.CoreException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

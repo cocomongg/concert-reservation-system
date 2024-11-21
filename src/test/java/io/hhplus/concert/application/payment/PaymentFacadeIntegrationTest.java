@@ -3,23 +3,24 @@ package io.hhplus.concert.application.payment;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.hhplus.concert.application.payment.PaymentDto.PaymentInfo;
-import io.hhplus.concert.domain.common.ServicePolicy;
-import io.hhplus.concert.domain.concert.model.ConcertReservation;
-import io.hhplus.concert.domain.concert.model.ConcertReservationStatus;
-import io.hhplus.concert.domain.concert.model.ConcertSeat;
-import io.hhplus.concert.domain.concert.model.ConcertSeatStatus;
-import io.hhplus.concert.domain.member.model.MemberPoint;
-import io.hhplus.concert.domain.payment.model.Payment;
-import io.hhplus.concert.domain.payment.model.PaymentStatus;
-import io.hhplus.concert.domain.support.error.CoreErrorType;
-import io.hhplus.concert.domain.support.error.CoreException;
-import io.hhplus.concert.domain.waitingqueue.model.TokenMeta;
-import io.hhplus.concert.infra.db.concert.ConcertReservationJpaRepository;
-import io.hhplus.concert.infra.db.concert.ConcertSeatJpaRepository;
-import io.hhplus.concert.infra.db.member.MemberPointJpaRepository;
-import io.hhplus.concert.infra.db.payment.PaymentJpaRepository;
-import io.hhplus.concert.infra.redis.repository.RedisRepository;
+import io.hhplus.concert.app.payment.application.PaymentDto.PaymentInfo;
+import io.hhplus.concert.app.payment.application.PaymentFacade;
+import io.hhplus.concert.app.common.ServicePolicy;
+import io.hhplus.concert.app.concert.domain.model.ConcertReservation;
+import io.hhplus.concert.app.concert.domain.model.ConcertReservationStatus;
+import io.hhplus.concert.app.concert.domain.model.ConcertSeat;
+import io.hhplus.concert.app.concert.domain.model.ConcertSeatStatus;
+import io.hhplus.concert.app.member.domain.model.MemberPoint;
+import io.hhplus.concert.app.payment.domain.model.Payment;
+import io.hhplus.concert.app.payment.domain.model.PaymentStatus;
+import io.hhplus.concert.app.common.error.CoreErrorType;
+import io.hhplus.concert.app.common.error.CoreException;
+import io.hhplus.concert.app.waitingqueue.domain.model.TokenMeta;
+import io.hhplus.concert.app.concert.infra.db.ConcertReservationJpaRepository;
+import io.hhplus.concert.app.concert.infra.db.ConcertSeatJpaRepository;
+import io.hhplus.concert.app.member.infra.db.MemberPointJpaRepository;
+import io.hhplus.concert.app.payment.infra.db.PaymentJpaRepository;
+import io.hhplus.concert.app.waitingqueue.infra.redis.RedisRepository;
 import io.hhplus.concert.support.DatabaseCleanUp;
 import io.hhplus.concert.support.RedisCleanUp;
 import java.time.Duration;
@@ -284,7 +285,7 @@ class PaymentFacadeIntegrationTest {
 
         @DisplayName("결제가 정상적으로 이뤄지면 대기열이 만료된다.")
         @Test
-        void should_ExpireWaitingQueue_When_PaymentIsSuccessful() {
+        void should_ExpireWaitingQueue_When_PaymentIsSuccessful() throws InterruptedException {
             // given
             Long memberId = 1L;
             LocalDateTime dateTime = LocalDateTime.now();

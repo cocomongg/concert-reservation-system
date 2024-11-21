@@ -3,8 +3,9 @@ package io.hhplus.concert.domain.member.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.hhplus.concert.domain.support.error.CoreErrorType;
-import io.hhplus.concert.domain.support.error.CoreException;
+import io.hhplus.concert.app.member.domain.model.MemberPoint;
+import io.hhplus.concert.app.common.error.CoreErrorType;
+import io.hhplus.concert.app.common.error.CoreException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
