@@ -2,6 +2,7 @@ package io.hhplus.concert.application.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 
 import io.hhplus.concert.app.payment.application.PaymentDto.PaymentInfo;
 import io.hhplus.concert.app.payment.application.PaymentFacade;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -324,12 +326,16 @@ class PaymentFacadeIntegrationTest {
             paymentFacade.payment(reservationId, token, dateTime);
 
             // then
-            boolean inSet = redisRepository.isInSet("active_queue", token);
-            assertThat(inSet).isFalse();
+            await().pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    boolean inSet = redisRepository.isInSet("active_queue", token);
+                    assertThat(inSet).isFalse();
 
-            TokenMeta tokenMeta = redisRepository.getStringValue("active_queue:" + token,
-                TokenMeta.class);
-            assertThat(tokenMeta).isNull();
+                    TokenMeta tokenMeta = redisRepository.getStringValue("active_queue:" + token,
+                        TokenMeta.class);
+                    assertThat(tokenMeta).isNull();
+                });
         }
 
         @DisplayName("결제가 정상적으로 이뤄지면 Payment과 PaymentHistory가 생성된다.")
