@@ -1,4 +1,4 @@
-package io.hhplus.concert.infra;
+package io.hhplus.concert.infra.redis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
