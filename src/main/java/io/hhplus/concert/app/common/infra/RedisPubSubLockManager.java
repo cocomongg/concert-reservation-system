@@ -1,4 +1,4 @@
-package io.hhplus.concert.app.common.lock;
+package io.hhplus.concert.app.common.infra;
 
 import io.hhplus.concert.app.common.lock.DistributedLockManager;
 import java.util.concurrent.TimeUnit;
