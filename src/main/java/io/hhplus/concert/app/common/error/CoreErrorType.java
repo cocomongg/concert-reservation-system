@@ -50,6 +50,16 @@ public enum CoreErrorType implements ErrorType {
         private final LogLevel logLevel;
     }
 
+    @Getter
+    @AllArgsConstructor
+    public enum PaymentOutbox implements ErrorType {
+        OUTBOX_NOT_FOUND(ErrorCode.NOT_FOUND, "Outbox not found", LogLevel.WARN);
+
+        private final ErrorCode errorCode;
+        private final String message;
+        private final LogLevel logLevel;
+    }
+
 //    @Getter
 //    @AllArgsConstructor
 //    public enum Payment implements ErrorType {
