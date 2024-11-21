@@ -1,7 +1,7 @@
 package io.hhplus.concert.app.waitingqueue.domain.event;
 
 import io.hhplus.concert.app.payment.domain.event.DonePaymentEvent;
-import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
+import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.ExpireToken;
 import io.hhplus.concert.app.waitingqueue.domain.service.WaitingQueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class DonePaymentTokenExpireHandler {
     public void handle(DonePaymentEvent event) {
         try {
             String token = event.getToken();
-            waitingQueueService.expireToken(new GetWaitingQueueCommonQuery(token));
+            waitingQueueService.expireToken(new ExpireToken(token));
         } catch (Exception e) {
             log.error("ExpireTokenEvent 처리 중 오류 발생", e);
         }
