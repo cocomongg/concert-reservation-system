@@ -17,18 +17,5 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class DonePaymentEventListener {
 
-    private final PaymentService paymentService;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleDonePaymentEvent(DonePaymentEvent event) {
-        try {
-            Payment payment = event.getPayment();
-            CreatePaymentHistory command = new CreatePaymentHistory(
-                payment.getId(), PaymentStatus.PAID, payment.getPaidAmount());
-            paymentService.createPaymentHistory(command);
-        } catch (Exception e) {
-            log.error("CreatePaymentHistoryEvent 처리 중 오류 발생", e);
-        }
-    }
 }
