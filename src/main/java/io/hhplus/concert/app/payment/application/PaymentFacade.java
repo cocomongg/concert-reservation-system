@@ -2,7 +2,7 @@ package io.hhplus.concert.app.payment.application;
 
 import io.hhplus.concert.app.payment.application.PaymentDto.PaymentInfo;
 import io.hhplus.concert.app.common.ServicePolicy;
-import io.hhplus.concert.app.common.event.DomainEventPublisher;
+import io.hhplus.concert.app.payment.domain.event.publisher.PaymentEventPublisher;
 import io.hhplus.concert.app.concert.domain.service.ConcertService;
 import io.hhplus.concert.app.concert.domain.dto.ConcertCommand.ConfirmReservation;
 import io.hhplus.concert.app.concert.domain.dto.ConcertQuery.CheckConcertSeatExpired;
@@ -28,7 +28,7 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final ConcertService concertService;
     private final MemberService memberService;
-    private final DomainEventPublisher domainEventPublisher;
+    private final PaymentEventPublisher paymentEventPublisher;
 
     @Transactional
     public PaymentInfo payment(Long reservationId, String token, LocalDateTime dateTime) {
@@ -53,7 +53,7 @@ public class PaymentFacade {
         Payment payment = paymentService.createPayment(new CreatePayment(memberId, reservationId,
             priceAmount, PaymentStatus.PAID, dateTime));
 
-        domainEventPublisher.publish(new DonePaymentEvent(payment, token));
+        paymentEventPublisher.publish(new DonePaymentEvent(payment, token));
 
         return new PaymentInfo(payment);
     }

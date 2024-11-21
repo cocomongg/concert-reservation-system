@@ -1,5 +1,6 @@
-package io.hhplus.concert.app.payment.domain.event;
+package io.hhplus.concert.app.payment.domain.event.listener;
 
+import io.hhplus.concert.app.payment.domain.event.DonePaymentEvent;
 import io.hhplus.concert.app.payment.domain.service.PaymentService;
 import io.hhplus.concert.app.payment.domain.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.app.payment.domain.model.Payment;
@@ -14,7 +15,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class DonePaymentEventHandler {
+public class DonePaymentEventListener {
 
     private final PaymentService paymentService;
 
