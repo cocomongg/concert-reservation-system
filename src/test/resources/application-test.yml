@@ -14,3 +14,12 @@ spring:
     redis:
       port: 6379
       host: localhost
+
+kafka:
+  producer:
+    bootstrap-servers: localhost:9092
+  consumer:
+    bootstrap-servers: localhost:9092
+    auto-offset-reset: earliest
+  topics:
+    test: test-topic
