@@ -2,6 +2,7 @@ package io.hhplus.concert.app.payment.application;
 
 import io.hhplus.concert.app.payment.application.PaymentDto.PaymentInfo;
 import io.hhplus.concert.app.common.ServicePolicy;
+import io.hhplus.concert.app.payment.domain.dto.PaymentCommand.CreatePaymentHistory;
 import io.hhplus.concert.app.payment.domain.event.publisher.PaymentEventPublisher;
 import io.hhplus.concert.app.concert.domain.service.ConcertService;
 import io.hhplus.concert.app.concert.domain.dto.ConcertCommand.ConfirmReservation;
@@ -49,9 +50,13 @@ public class PaymentFacade {
         // 좌석, 예약 정보 업데이트
         concertService.confirmReservation(new ConfirmReservation(concertSeatId, reservationId, dateTime));
 
-        // 결제 정보 저장
+        // 결제 정보,이력 저장
         Payment payment = paymentService.createPayment(new CreatePayment(memberId, reservationId,
             priceAmount, PaymentStatus.PAID, dateTime));
+
+        CreatePaymentHistory command = new CreatePaymentHistory(
+            payment.getId(), PaymentStatus.PAID, payment.getPaidAmount());
+        paymentService.createPaymentHistory(command);
 
         paymentEventPublisher.publish(new DonePaymentEvent(payment, token));
 

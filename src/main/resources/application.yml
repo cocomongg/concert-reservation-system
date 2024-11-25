@@ -18,3 +18,16 @@ spring:
       host: localhost
   cache:
     type: redis
+
+kafka:
+  producer:
+    bootstrap-servers: localhost:29092
+  consumer:
+    bootstrap-servers: localhost:29092
+    auto-offset-reset: earliest
+  topics:
+    payment: payment-done-topic
+  groups:
+    payment: payment-group
+    waitingQueue: waiting-queue-group
+    notification: notification-group

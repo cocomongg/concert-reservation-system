@@ -3,17 +3,18 @@ package io.hhplus.concert.domain.waitingqueue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.hhplus.concert.app.waitingqueue.domain.service.WaitingQueueService;
 import io.hhplus.concert.app.common.error.CoreErrorType;
 import io.hhplus.concert.app.common.error.CoreException;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.ActivateWaitingTokens;
+import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.ExpireToken;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
+import io.hhplus.concert.app.waitingqueue.domain.model.TokenMeta;
 import io.hhplus.concert.app.waitingqueue.domain.model.WaitingQueueTokenInfo;
 import io.hhplus.concert.app.waitingqueue.domain.model.WaitingQueueTokenStatus;
+import io.hhplus.concert.app.waitingqueue.domain.service.WaitingQueueService;
 import io.hhplus.concert.app.waitingqueue.infra.redis.RedisRepository;
-import io.hhplus.concert.app.waitingqueue.domain.model.TokenMeta;
 import io.hhplus.concert.support.RedisCleanUp;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -233,10 +234,8 @@ class WaitingQueueServiceIntegrationTest {
             redisRepository.setStringValue("active_queue:" + activeToken,
                 new TokenMeta(LocalDateTime.now()), Duration.ofMinutes(10));
 
-            GetWaitingQueueCommonQuery query = new GetWaitingQueueCommonQuery(activeToken);
-
             // when
-            waitingQueueService.expireToken(query);
+            waitingQueueService.expireToken(new ExpireToken(activeToken));
 
             // then
             boolean inSet = redisRepository.isInSet("active_queue", activeToken);

@@ -9,4 +9,5 @@ public class ServicePolicy {
     public static final int WAITING_QUEUE_ACTIVATE_INTERVAL = 30_000;
     public static final TimeUnit TOKEN_ACTIVATE_INTERVAL_TIMEUNIT = TimeUnit.MINUTES;
     public static final String CACHE_CONCERT_PREFIX = "concert";
+    public static final int REPUBLISH_MESSAGE_INTERVAL = 60_000;
 }
