@@ -3,6 +3,7 @@ package io.hhplus.concert.app.waitingqueue.domain.service;
 import io.hhplus.concert.app.common.error.CoreErrorType;
 import io.hhplus.concert.app.common.error.CoreException;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.ActivateWaitingTokens;
+import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.ExpireToken;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.GetRemainingWaitTimeSeconds;
@@ -74,7 +75,7 @@ public class WaitingQueueService {
         return activateCount;
     }
 
-    public void expireToken(GetWaitingQueueCommonQuery query) {
-        waitingQueueRepository.expireToken(query.getToken());
+    public void expireToken(ExpireToken command) {
+        waitingQueueRepository.expireToken(command.getToken());
     }
 }

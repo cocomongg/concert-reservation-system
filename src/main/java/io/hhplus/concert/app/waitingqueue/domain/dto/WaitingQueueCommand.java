@@ -21,4 +21,10 @@ public class WaitingQueueCommand {
         private final long expireTime;
         private final TimeUnit timeUnit;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ExpireToken {
+        private final String token;
+    }
 }

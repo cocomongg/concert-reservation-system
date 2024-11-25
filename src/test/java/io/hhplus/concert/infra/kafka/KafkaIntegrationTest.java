@@ -17,9 +17,6 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
-@EmbeddedKafka(partitions = 1,
-    brokerProperties = {"listeners=PLAINTEXT://localhost:9092"},
-    ports = {9092})
 @SpringBootTest
 public class KafkaIntegrationTest {
 
@@ -28,9 +25,6 @@ public class KafkaIntegrationTest {
 
     @Autowired
     private KafkaTestConsumer kafkaTestConsumer;
-
-    @Value("${kafka.topics.test}")
-    private String topic;
 
     @DisplayName("Kafka의 특정 토픽에 여러 번 메시지를 전송하고, 해당 토픽을 구독하는 컨슈머가 메시지를 소비한다.")
     @Test
@@ -44,7 +38,7 @@ public class KafkaIntegrationTest {
             String content = "test message " + i;
             KafkaTestMessage message = new KafkaTestMessage(content, LocalDateTime.now());
             messages.add(message);
-            kafkaTemplate.send(topic, message);
+            kafkaTemplate.send("test-topic", message);
         }
 
         // then

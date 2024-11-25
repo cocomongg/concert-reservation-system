@@ -5,15 +5,16 @@ import static io.hhplus.concert.app.common.ServicePolicy.WAITING_QUEUE_ACTIVATE_
 import static io.hhplus.concert.app.common.ServicePolicy.WAITING_QUEUE_ACTIVATE_INTERVAL;
 import static io.hhplus.concert.app.common.ServicePolicy.WAITING_QUEUE_EXPIRED_MINUTES;
 
-import io.hhplus.concert.app.waitingqueue.domain.service.WaitingQueueService;
-import io.hhplus.concert.app.waitingqueue.domain.service.WaitingQueueTokenGenerator;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.ActivateWaitingTokens;
+import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.ExpireToken;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueCommand.InsertWaitingQueue;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.CheckTokenActivate;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.GetRemainingWaitTimeSeconds;
 import io.hhplus.concert.app.waitingqueue.domain.dto.WaitingQueueQuery.GetWaitingQueueCommonQuery;
 import io.hhplus.concert.app.waitingqueue.domain.model.WaitingQueueTokenInfo;
 import io.hhplus.concert.app.waitingqueue.domain.model.WaitingTokenWithOrderInfo;
+import io.hhplus.concert.app.waitingqueue.domain.service.WaitingQueueService;
+import io.hhplus.concert.app.waitingqueue.domain.service.WaitingQueueTokenGenerator;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,7 @@ public class WaitingQueueFacade {
         return waitingQueueService.activateToken(command);
     }
 
-//    public Long expireWaitingQueues(LocalDateTime currentTime) {
-//        return waitingQueueService.expireToken(currentTime);
-//    }
+    public void expireToken(String token) {
+        waitingQueueService.expireToken(new ExpireToken(token));
+    }
 }
