@@ -1,11 +1,11 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/concert_reservation
+    url: jdbc:mysql://mysql:3306/concert_reservation
     username: root
-    password: pcs8437!
+    password: password
   jpa:
-    hibernate:
+#    hibernate:
 #      ddl-auto: create
     #    database-platform: org.hibernate.dialect.H2Dialect
     properties:
@@ -15,15 +15,15 @@ spring:
   data:
     redis:
       port: 6379
-      host: localhost
+      host: redis
   cache:
     type: redis
 
 kafka:
   producer:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: kafka1:9092
   consumer:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: kafka1:9092
     auto-offset-reset: earliest
   topics:
     payment: payment-done-topic
@@ -31,3 +31,13 @@ kafka:
     payment: payment-group
     waitingQueue: waiting-queue-group
     notification: notification-group
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
