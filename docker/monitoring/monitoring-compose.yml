@@ -1,0 +1,56 @@
+version: '3.8'
+
+networks:
+  k6:
+  grafana:
+  concert-app_default:
+    external: true
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=native-histograms
+    ports:
+      - "9090:9090"
+    networks:
+      - concert-app_default
+      - grafana
+      - k6
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "$UID:$GID"
+    networks:
+      - grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/dashboard
+
+  k6:
+    image: grafana/k6:latest
+    container_name: k6
+    volumes:
+      - ./k6/scripts:/scripts
+    networks:
+      - k6
+      - concert-app_default
+    command: run -o experimental-prometheus-rw /scripts/waitingQueueTest.js
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+      - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
+    depends_on:
+      - prometheus
